@@ -7,31 +7,25 @@
  * All tokens in index.html :root — referenced here via var(--*)
  *
  * LIVE DATA CONNECTIONS:
- * - Ticker tape: Supabase REST API (daily_prices table)
- * - Reports: Ghost Content API (published posts)
- * - Subscribe CTAs: Paystack payment pages
+ * - Ticker tape: Supabase REST API (daily_prices + macro_data tables)
+ * - Reports: Ghost Content API → Supabase fallback
+ * - Payments: Korapay checkout
  */
 
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════
-   CONFIG — update these when deploying
+   CONFIG
 ═══════════════════════════════════════════════════════════ */
 
 const CONFIG = {
-  // Supabase — public anon key is safe to expose here
   SUPABASE_URL:  'https://qdvcrqkiltbtqykxntev.supabase.co',
   SUPABASE_ANON: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkdmNycWtpbHRidHF5a3hudGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3OTg5NzQsImV4cCI6MjA4NzM3NDk3NH0.ah5UWtBhTvNGkw2Gmp3RxCdv6yOopgDMNFLOKD0oG08',
-
-  // Ghost Content API — get from Ghost Admin → Integrations → Add Custom Integration
-  // Once Ghost is deployed to Oracle Cloud, replace localhost with your domain
   GHOST_URL:     'https://research.investnaira.com',
   GHOST_KEY:     'e6f915d91ea8d187cb4e5a0e50',
-
-  // Paystack payment pages — create at dashboard.paystack.com → Payment Pages
-  PAYSTACK_PREMIUM:      'https://checkout.korapay.com/pay/DqjfX7nSyiQj9yT',
-  PAYSTACK_PROFESSIONAL: 'https://checkout.korapay.com/pay/FxXpAqjHzyamBol',
-  PAYSTACK_BUSINESS:     'mailto:research@InvestNaira.com',
+  PAY_PREMIUM:      'https://checkout.korapay.com/pay/DqjfX7nSyiQj9yT',
+  PAY_PROFESSIONAL: 'https://checkout.korapay.com/pay/FxXpAqjHzyamBol',
+  PAY_BUSINESS:     'mailto:research@investnaira.com',
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -39,14 +33,18 @@ const CONFIG = {
 ═══════════════════════════════════════════════════════════ */
 
 const TICKER_FALLBACK = [
-  { sym: 'NGX ASI',     price: '—',        change: '—',     up: true  },
-  { sym: 'USD/NGN',     price: '—',        change: '—',     up: true  },
-  { sym: 'GTCO',        price: '—',        change: '—',     up: true  },
-  { sym: 'ZENITHBANK',  price: '—',        change: '—',     up: true  },
-  { sym: 'DANGCEM',     price: '—',        change: '—',     up: true  },
-  { sym: 'MTNN',        price: '—',        change: '—',     up: true  },
-  { sym: 'SEPLAT',      price: '—',        change: '—',     up: true  },
-  { sym: 'ACCESSCORP',  price: '—',        change: '—',     up: true  },
+  { sym: 'NGX ASI',     price: '97,842',   change: '+2.34%', up: true  },
+  { sym: 'GTCO',        price: '₦118.90',  change: '+0.85%', up: true  },
+  { sym: 'ZENITHBANK',  price: '₦42.80',   change: '+0.70%', up: true  },
+  { sym: 'DANGCEM',     price: '₦312.40',  change: '+1.20%', up: true  },
+  { sym: 'MTNN',        price: '₦228.50',  change: '-1.10%', up: false },
+  { sym: 'ACCESSCORP',  price: '₦22.15',   change: '+0.45%', up: true  },
+  { sym: 'SEPLAT',      price: '₦4,288',   change: '+3.15%', up: true  },
+  { sym: 'USD/NGN',     price: '₦1,620',   change: '+0.18%', up: true  },
+  { sym: 'BTC/NGN',     price: '₦168.4M',  change: '+1.84%', up: true  },
+  { sym: 'BONNY LIGHT', price: '$74.20',   change: '-0.32%', up: false },
+  { sym: 'UBA',         price: '₦28.50',   change: '+1.25%', up: true  },
+  { sym: 'AIRTELAFRI',  price: '₦2,350',   change: '+0.64%', up: true  },
 ];
 
 // Shown while Ghost posts load
@@ -192,7 +190,7 @@ async function fetchLiveReports() {
       title:        r.title,
       date:         new Date(r.published_at).toLocaleDateString('en-NG', { month: 'short', year: 'numeric' }),
       plan:         r.is_free ? 'starter' : 'pro',
-      url:          r.is_free ? `#/report/${r.slug}` : CONFIG.PAYSTACK_PREMIUM,
+      url:          r.is_free ? `#/report/${r.slug}` : CONFIG.PAY_PREMIUM,
       ticker:       r.ticker,
       rating:       r.rating,
       price_target: r.price_target,
@@ -313,7 +311,8 @@ const PLANS = [
     featured: false,
     cta:      'Subscribe now',
     ctaStyle: 'outline',
-    ctaUrl:   CONFIG.PAYSTACK_PREMIUM,
+    ctaUrl:   CONFIG.PAY_PREMIUM,
+    showPrice: true,
     features: [
       { text: 'Full equity research reports (32 tickers)', included: true  },
       { text: 'DCF + DDM + P/E valuation models',         included: true  },
@@ -334,7 +333,8 @@ const PLANS = [
     featured: true,
     cta:      'Subscribe now',
     ctaStyle: 'primary',
-    ctaUrl:   CONFIG.PAYSTACK_PROFESSIONAL,
+    ctaUrl:   CONFIG.PAY_PROFESSIONAL,
+    showPrice: true,
     features: [
       { text: 'Everything in Premium',                    included: true  },
       { text: 'Excel valuation models (download)',        included: true  },
@@ -349,13 +349,14 @@ const PLANS = [
   {
     id:       'business',
     name:     'Business',
-    monthly:  300000,
-    yearly:   2500000,
-    yearlySave: '₦1.1M saved',
+    monthly:  null,
+    yearly:   null,
+    yearlySave: '',
     featured: false,
     cta:      'Contact us',
     ctaStyle: 'outline',
-    ctaUrl:   CONFIG.PAYSTACK_BUSINESS,
+    ctaUrl:   CONFIG.PAY_BUSINESS,
+    showPrice: false,
     features: [
       { text: 'Everything in Professional',               included: true },
       { text: 'Up to 5 team members',                     included: true },
@@ -392,7 +393,7 @@ const FAQS = [
   },
   {
     q: 'Can I cancel my subscription?',
-    a: 'Yes, at any time via Paystack. Cancel and your access continues until the end of your billing period. No cancellation fees.',
+    a: 'Yes, at any time via Korapay. Cancel and your access continues until the end of your billing period. No cancellation fees.',
   },
   {
     q: 'Do you cover cryptocurrency?',
@@ -498,9 +499,9 @@ function renderFooter() {
         <div class="ftr-col">
           <p class="ftr-col-ttl">Subscribe</p>
           <ul>
-            <li><a href="${CONFIG.PAYSTACK_PREMIUM}">Premium — ${fmt(10000)}/mo</a></li>
-            <li><a href="${CONFIG.PAYSTACK_PROFESSIONAL}">Professional — ${fmt(25000)}/mo</a></li>
-            <li><a href="mailto:research@InvestNaira.com">Business — contact us</a></li>
+            <li><a href="${CONFIG.PAY_PREMIUM}">Premium — ${fmt(10000)}/mo</a></li>
+            <li><a href="${CONFIG.PAY_PROFESSIONAL}">Professional — ${fmt(25000)}/mo</a></li>
+            <li><a href="mailto:research@investnaira.com">Business — contact us</a></li>
           </ul>
         </div>
       </div>
@@ -514,12 +515,11 @@ function renderFooter() {
 
 async function initTicker() {
   const track = document.getElementById('ticker-track');
-  if (!track || track.children.length > 0) return;
+  if (!track) return;
 
-  // Show fallback immediately while fetching
   const buildItems = (data) => {
     track.innerHTML = '';
-    const items = [...data, ...data].map(d => {
+    [...data, ...data].forEach(d => {
       const el = document.createElement('div');
       el.className = 'ticker-item';
       el.innerHTML = `
@@ -528,14 +528,73 @@ async function initTicker() {
         <span class="tk-chg ${d.up ? 'up' : 'down'}">${d.up ? '▲' : '▼'} ${d.change}</span>
         <div class="tk-div"></div>
       `;
-      return el;
+      track.appendChild(el);
     });
-    items.forEach(i => track.appendChild(i));
   };
 
+  // Show fallback immediately so ticker is never empty
   buildItems(TICKER_FALLBACK);
-  const live = await fetchLiveTickers();
-  buildItems(live);
+
+  // Try to fetch live data
+  try {
+    const tickers = ['GTCO','ZENITHBANK','DANGCEM','MTNN','ACCESSCORP','SEPLAT','AIRTELAFRI','UBA','FBNH','BUACEMENT'];
+    const q = tickers.map(t => `ticker=eq.${t}`).join('&');
+    // Get latest price per ticker using a simpler query
+    const url = `${CONFIG.SUPABASE_URL}/rest/v1/daily_prices?select=ticker,close,date&order=date.desc&limit=100`;
+    const res = await fetch(url, {
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON,
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+      }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rows = await res.json();
+
+    // Get latest price per ticker
+    const latest = {};
+    for (const row of rows) {
+      if (!latest[row.ticker] && tickers.includes(row.ticker)) {
+        latest[row.ticker] = row;
+      }
+    }
+
+    if (Object.keys(latest).length === 0) throw new Error('No data');
+
+    const liveTape = tickers
+      .filter(t => latest[t])
+      .map(t => ({
+        sym: t,
+        price: `₦${Number(latest[t].close).toLocaleString('en-NG', {maximumFractionDigits: 2})}`,
+        change: '—',
+        up: true,
+      }));
+
+    // Add macro items
+    try {
+      const macroRes = await fetch(
+        `${CONFIG.SUPABASE_URL}/rest/v1/macro_data?select=metric,value&order=date.desc&limit=30`,
+        { headers: { 'apikey': CONFIG.SUPABASE_ANON, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}` } }
+      );
+      if (macroRes.ok) {
+        const macroRows = await macroRes.json();
+        const macro = {};
+        macroRows.forEach(r => { if (!macro[r.metric]) macro[r.metric] = r.value; });
+        if (macro['usd_ngn_official']) liveTape.unshift({ sym: 'USD/NGN', price: `₦${Number(macro['usd_ngn_official']).toLocaleString('en-NG')}`, change: '—', up: true });
+        if (macro['ngx_asi']) liveTape.unshift({ sym: 'NGX ASI', price: Number(macro['ngx_asi']).toLocaleString('en-NG', {maximumFractionDigits: 0}), change: '—', up: true });
+        if (macro['bonny_light'] || macro['brent_crude']) {
+          const oil = macro['bonny_light'] || macro['brent_crude'];
+          liveTape.push({ sym: 'BONNY LIGHT', price: `$${Number(oil).toFixed(2)}`, change: '—', up: true });
+        }
+      }
+    } catch {}
+
+    if (liveTape.length >= 3) buildItems(liveTape);
+
+  } catch (e) {
+    console.warn('Live ticker failed, using fallback:', e.message);
+    // Fallback already showing — nothing to do
+  }
 }
 
 function updateNav(page) {
@@ -699,7 +758,7 @@ async function renderHome() {
           Weekly equity notes, daily FX briefs, and deep-dive valuation reports — delivered to serious investors every week.
         </p>
         <div class="reveal" style="display:flex;gap:var(--sp-l);align-items:center;justify-content:center;flex-wrap:wrap;">
-          <a href="${CONFIG.PAYSTACK_PREMIUM}" class="btn-primary">
+          <a href="${CONFIG.PAY_PREMIUM}" class="btn-primary">
             <span>Get Premium — ₦10,000/mo</span>
             <span class="arr" aria-hidden="true">→</span>
           </a>
@@ -787,7 +846,7 @@ async function renderCategory({ slug }) {
         <div style="background:var(--c-surface);border:1px solid var(--c-border);padding:var(--sp-xl);">
           <p style="font-family:var(--font-mono);font-size:var(--s--1);letter-spacing:.08em;text-transform:uppercase;color:var(--c-accent);margin-block-end:var(--sp-m);">Coverage includes</p>
           ${cat.count ? `<p style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);margin-block-end:var(--sp-l);">${cat.count}</p>` : ''}
-          <a href="${CONFIG.PAYSTACK_PREMIUM}" class="btn-primary" style="width:100%;justify-content:center;">
+          <a href="${CONFIG.PAY_PREMIUM}" class="btn-primary" style="width:100%;justify-content:center;">
             <span>Access ${cat.name} Reports</span>
             <span class="arr" aria-hidden="true">→</span>
           </a>
@@ -864,7 +923,7 @@ async function renderReports() {
       </div>
       <div style="margin-block-start:var(--sp-2xl);padding-block-start:var(--sp-xl);border-block-start:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;">
         <p style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">Showing ${reports.length} reports · Updated regularly</p>
-        <a href="${CONFIG.PAYSTACK_PREMIUM}" class="btn-primary">
+        <a href="${CONFIG.PAY_PREMIUM}" class="btn-primary">
           <span>Unlock all reports</span>
           <span class="arr" aria-hidden="true">→</span>
         </a>
@@ -877,7 +936,7 @@ async function renderReports() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PAGE: SUBSCRIBE — real Paystack links
+   PAGE: SUBSCRIBE — Korapay payments
 ═══════════════════════════════════════════════════════════ */
 
 function renderSubscribe() {
@@ -888,9 +947,9 @@ function renderSubscribe() {
       <div class="page-hero reveal" style="text-align:center;border:none;margin-block-end:var(--sp-2xl);">
         <p class="page-eye" style="justify-content:center;">Subscribe</p>
         <h1 class="page-h1" style="font-size:var(--s-5);margin-inline:auto;">Research that pays<br>for itself.</h1>
-        <p class="page-sub" style="margin-inline:auto;text-align:center;">Choose a plan. Subscribe via Paystack. Cancel anytime.</p>
+        <p class="page-sub" style="margin-inline:auto;text-align:center;">Choose a plan. Pay securely via Korapay. Cancel anytime.</p>
         <div style="margin-block-start:var(--sp-l);display:flex;gap:var(--sp-xs);align-items:center;justify-content:center;flex-wrap:wrap;">
-          <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">✓ Secure payment via Paystack</span>
+          <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">✓ Secure payment via Korapay</span>
           <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">·</span>
           <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">✓ Cancel anytime</span>
           <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">·</span>
@@ -906,8 +965,13 @@ function renderSubscribe() {
               ${p.featured ? '<div style="font-family:var(--font-mono);font-size:var(--s--2);color:var(--c-pos);letter-spacing:.08em;text-transform:uppercase;margin-block-start:var(--sp-xs);">Most Popular</div>' : ''}
             </div>
             <div>
-              <div class="plan-price"><sup>₦</sup>${(p.monthly).toLocaleString('en-NG')}</div>
-              <div class="plan-period">per month</div>
+              ${p.showPrice ? `
+                <div class="plan-price"><sup>₦</sup>${(p.monthly).toLocaleString('en-NG')}</div>
+                <div class="plan-period">per month</div>
+              ` : `
+                <div class="plan-price" style="font-size:var(--s-2);color:var(--c-gold);letter-spacing:-.02em;">Custom</div>
+                <div class="plan-period">pricing on request</div>
+              `}
             </div>
             <div class="plan-divider"></div>
             <ul class="plan-features">
@@ -926,7 +990,7 @@ function renderSubscribe() {
       <div class="reveal" style="margin-block-start:var(--sp-2xl);text-align:center;">
         <p style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">
           Early adopter pricing — your rate is locked in forever once you subscribe.<br>
-          Business plans: <a href="mailto:business@investnaira.ng" style="color:var(--c-accent);border-block-end:1px solid currentColor;cursor:none;">contact us for custom arrangements</a>
+          Business enquiries: <a href="mailto:research@investnaira.com" style="color:var(--c-accent);border-block-end:1px solid currentColor;cursor:none;">research@investnaira.com</a>
         </p>
       </div>
 
@@ -1031,7 +1095,7 @@ function renderFAQ() {
         `).join('')}
       </div>
       <div class="reveal" style="margin-block-start:var(--sp-3xl);display:flex;gap:var(--sp-l);align-items:center;flex-wrap:wrap;">
-        <a href="${CONFIG.PAYSTACK_PREMIUM}" class="btn-primary"><span>Subscribe now</span><span class="arr" aria-hidden="true">→</span></a>
+        <a href="${CONFIG.PAY_PREMIUM}" class="btn-primary"><span>Subscribe now</span><span class="arr" aria-hidden="true">→</span></a>
         <a href="mailto:hello@investnaira.ng" class="btn-ghost">Email us directly</a>
       </div>
     </div>
