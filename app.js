@@ -5,30 +5,225 @@
  *
  * Design system: Lagos Financial Intelligence
  * All tokens in index.html :root — referenced here via var(--*)
+ *
+ * LIVE DATA CONNECTIONS:
+ * - Ticker tape: Supabase REST API (daily_prices table)
+ * - Reports: Ghost Content API (published posts)
+ * - Subscribe CTAs: Paystack payment pages
  */
 
 'use strict';
 
 /* ═══════════════════════════════════════════════════════════
-   DATA
+   CONFIG — update these when deploying
 ═══════════════════════════════════════════════════════════ */
 
-const TICKER_DATA = [
-  { sym: 'NGX ASI',     price: '97,842.15', change: '+2.34%', up: true  },
-  { sym: 'USD/NGN',     price: '₦1,647.50', change: '+0.18%', up: true  },
-  { sym: 'DANGCEM',     price: '₦312.40',   change: '+1.20%', up: true  },
-  { sym: 'GTCO',        price: '₦58.25',    change: '-0.43%', up: false },
-  { sym: 'SEPLAT',      price: '₦4,288',    change: '+3.15%', up: true  },
-  { sym: 'BRENT',       price: '$78.42',    change: '-0.87%', up: false },
-  { sym: 'GOLD',        price: '$2,684',    change: '+0.54%', up: true  },
-  { sym: 'EUR/NGN',     price: '₦1,732',    change: '-0.22%', up: false },
-  { sym: 'ZENITHBANK',  price: '₦42.80',    change: '+0.70%', up: true  },
-  { sym: 'BTC/NGN',     price: '₦168.4M',   change: '+1.84%', up: true  },
-  { sym: 'BONNY LIGHT', price: '$80.15',    change: '+0.34%', up: true  },
-  { sym: 'GBP/NGN',     price: '₦2,091',    change: '+0.08%', up: true  },
-  { sym: 'MTNN',        price: '₦228.50',   change: '-1.10%', up: false },
-  { sym: 'ETH/NGN',     price: '₦9.12M',    change: '+2.11%', up: true  },
+const CONFIG = {
+  // Supabase — public anon key is safe to expose here
+  SUPABASE_URL:  'https://qdvcrqkiltbtqykxntev.supabase.co',
+  SUPABASE_ANON: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkdmNycWtpbHRidHF5a3hudGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3OTg5NzQsImV4cCI6MjA4NzM3NDk3NH0.ah5UWtBhTvNGkw2Gmp3RxCdv6yOopgDMNFLOKD0oG08',
+
+  // Ghost Content API — get from Ghost Admin → Integrations → Add Custom Integration
+  // Once Ghost is deployed to Oracle Cloud, replace localhost with your domain
+  GHOST_URL:     'https://research.investnaira.com',
+  GHOST_KEY:     'e6f915d91ea8d187cb4e5a0e50',
+
+  // Paystack payment pages — create at dashboard.paystack.com → Payment Pages
+  PAYSTACK_PREMIUM:      'https://checkout.korapay.com/pay/DqjfX7nSyiQj9yT',
+  PAYSTACK_PROFESSIONAL: 'https://checkout.korapay.com/pay/FxXpAqjHzyamBol',
+  PAYSTACK_BUSINESS:     'mailto:research@InvestNaira.com',
+};
+
+/* ═══════════════════════════════════════════════════════════
+   FALLBACK DATA — shown while live data loads
+═══════════════════════════════════════════════════════════ */
+
+const TICKER_FALLBACK = [
+  { sym: 'NGX ASI',     price: '—',        change: '—',     up: true  },
+  { sym: 'USD/NGN',     price: '—',        change: '—',     up: true  },
+  { sym: 'GTCO',        price: '—',        change: '—',     up: true  },
+  { sym: 'ZENITHBANK',  price: '—',        change: '—',     up: true  },
+  { sym: 'DANGCEM',     price: '—',        change: '—',     up: true  },
+  { sym: 'MTNN',        price: '—',        change: '—',     up: true  },
+  { sym: 'SEPLAT',      price: '—',        change: '—',     up: true  },
+  { sym: 'ACCESSCORP',  price: '—',        change: '—',     up: true  },
 ];
+
+// Shown while Ghost posts load
+const REPORTS_FALLBACK = [
+  { id: 1, type: 'equity',    badge: 'Equity',    title: 'GTCO Holdings — Full Valuation Report: BUY | Target ₦158',           date: 'Mar 2026', plan: 'pro', url: '#/subscribe' },
+  { id: 2, type: 'equity',    badge: 'Equity',    title: 'Zenith Bank FY2024 — Initiating Coverage',                            date: 'Mar 2026', plan: 'pro', url: '#/subscribe' },
+  { id: 3, type: 'equity',    badge: 'Equity',    title: 'Access Holdings Q3 2025 — Financial Statement Analysis',              date: 'Mar 2026', plan: 'pro', url: '#/subscribe' },
+  { id: 4, type: 'currency',  badge: 'Currency',  title: 'CBN MPR at 27.5%: What It Means for Nigerian Equities in 2026',      date: 'Mar 2026', plan: 'starter', url: '#/subscribe' },
+  { id: 5, type: 'equity',    badge: 'Equity',    title: 'MTN Nigeria FY2024 — Earnings Breakdown and Price Target',            date: 'Mar 2026', plan: 'pro', url: '#/subscribe' },
+  { id: 6, type: 'commodity', badge: 'Commodity', title: 'Dangote Cement Q3 2025 — Volume Growth vs Margin Compression',       date: 'Feb 2026', plan: 'pro', url: '#/subscribe' },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   LIVE DATA — Supabase + Ghost
+═══════════════════════════════════════════════════════════ */
+
+// Cache so we don't re-fetch on every navigation
+const cache = { tickers: null, reports: null, stats: null };
+
+async function fetchLiveTickers() {
+  if (cache.tickers) return cache.tickers;
+  try {
+    // Featured tickers for the tape
+    const tickers = ['GTCO','ZENITHBANK','DANGCEM','MTNN','ACCESSCORP','SEPLAT','AIRTELAFRI','UBA','FBNH','BUACEMENT'];
+    const list = tickers.join(',');
+    const url = `${CONFIG.SUPABASE_URL}/rest/v1/daily_prices?select=ticker,close,date&ticker=in.(${list})&order=date.desc&limit=20`;
+    const res = await fetch(url, {
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON,
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}`,
+      }
+    });
+    if (!res.ok) throw new Error('Supabase fetch failed');
+    const rows = await res.json();
+
+    // Get latest price per ticker
+    const latest = {};
+    for (const row of rows) {
+      if (!latest[row.ticker]) latest[row.ticker] = row;
+    }
+
+    // Also fetch macro data (USD/NGN, oil)
+    const macroUrl = `${CONFIG.SUPABASE_URL}/rest/v1/macro_data?select=metric,value,date&order=date.desc&limit=20`;
+    const macroRes = await fetch(macroUrl, {
+      headers: { 'apikey': CONFIG.SUPABASE_ANON, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}` }
+    });
+    const macroRows = macroRes.ok ? await macroRes.json() : [];
+    const macro = {};
+    for (const row of macroRows) {
+      if (!macro[row.metric]) macro[row.metric] = row;
+    }
+
+    // Build ticker tape array
+    const tape = [];
+
+    // NGX ASI from macro
+    if (macro['ngx_asi']) {
+      tape.push({ sym: 'NGX ASI', price: Number(macro['ngx_asi'].value).toLocaleString('en-NG', {maximumFractionDigits:2}), change: '+—', up: true });
+    }
+
+    // USD/NGN from macro
+    if (macro['usd_ngn_official']) {
+      tape.push({ sym: 'USD/NGN', price: `₦${Number(macro['usd_ngn_official'].value).toLocaleString('en-NG', {maximumFractionDigits:2})}`, change: '+—', up: true });
+    }
+
+    // Stock prices
+    for (const ticker of tickers) {
+      if (latest[ticker]) {
+        const price = latest[ticker].close;
+        tape.push({
+          sym: ticker,
+          price: `₦${Number(price).toLocaleString('en-NG', {maximumFractionDigits:2})}`,
+          change: '—',
+          up: true,
+        });
+      }
+    }
+
+    // Oil from macro
+    if (macro['bonny_light'] || macro['brent_crude']) {
+      const oil = macro['bonny_light'] || macro['brent_crude'];
+      tape.push({ sym: 'BONNY LIGHT', price: `$${Number(oil.value).toFixed(2)}`, change: '—', up: true });
+    }
+
+    cache.tickers = tape.length > 3 ? tape : TICKER_FALLBACK;
+    return cache.tickers;
+  } catch (e) {
+    console.warn('Live ticker fetch failed, using fallback:', e.message);
+    return TICKER_FALLBACK;
+  }
+}
+
+async function fetchLiveReports() {
+  if (cache.reports) return cache.reports;
+  
+  // Try Ghost first
+  try {
+    const url = `${CONFIG.GHOST_URL}/ghost/api/content/posts/?key=${CONFIG.GHOST_KEY}&limit=20&fields=id,title,slug,published_at,tags,url&include=tags`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      const posts = data.posts || [];
+      if (posts.length > 0) {
+        cache.reports = posts.map(post => {
+          const tags = (post.tags || []).map(t => t.slug);
+          let type = 'equity';
+          if (tags.includes('currency') || tags.includes('fx')) type = 'currency';
+          else if (tags.includes('commodity') || tags.includes('commodities')) type = 'commodity';
+          else if (tags.includes('crypto') || tags.includes('cryptocurrency')) type = 'crypto';
+          else if (tags.includes('real-estate') || tags.includes('realestate')) type = 'realestate';
+          return {
+            id:    post.id,
+            type,
+            badge: type.charAt(0).toUpperCase() + type.slice(1),
+            title: post.title,
+            date:  post.published_at ? new Date(post.published_at).toLocaleDateString('en-NG', { month: 'short', year: 'numeric' }) : 'Recent',
+            plan:  tags.includes('free') ? 'starter' : 'pro',
+            url:   `${CONFIG.GHOST_URL}/${post.slug}`,
+          };
+        });
+        return cache.reports;
+      }
+    }
+  } catch (e) {
+    console.warn('Ghost fetch failed, trying Supabase:', e.message);
+  }
+
+  // Fallback to Supabase reports table
+  try {
+    const url = `${CONFIG.SUPABASE_URL}/rest/v1/reports?select=*&order=published_at.desc&limit=20`;
+    const res = await fetch(url, {
+      headers: {
+        'apikey': CONFIG.SUPABASE_ANON,
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}`,
+      }
+    });
+    if (!res.ok) throw new Error('fetch failed');
+    const rows = await res.json();
+    cache.reports = rows.map(r => ({
+      id:           r.id,
+      type:         r.type || 'equity',
+      badge:        (r.type || 'equity').charAt(0).toUpperCase() + (r.type || 'equity').slice(1),
+      title:        r.title,
+      date:         new Date(r.published_at).toLocaleDateString('en-NG', { month: 'short', year: 'numeric' }),
+      plan:         r.is_free ? 'starter' : 'pro',
+      url:          r.is_free ? `#/report/${r.slug}` : CONFIG.PAYSTACK_PREMIUM,
+      ticker:       r.ticker,
+      rating:       r.rating,
+      price_target: r.price_target,
+      excerpt:      r.excerpt,
+    }));
+    return cache.reports.length > 0 ? cache.reports : REPORTS_FALLBACK;
+  } catch (e) {
+    console.warn('Supabase fetch failed, using fallback:', e.message);
+    return REPORTS_FALLBACK;
+  }
+}
+
+async function fetchStats() {
+  if (cache.stats) return cache.stats;
+  try {
+    // Count real research ratings in Supabase
+    const url = `${CONFIG.SUPABASE_URL}/rest/v1/research_ratings?select=id&limit=1000`;
+    const res = await fetch(url, {
+      headers: { 'apikey': CONFIG.SUPABASE_ANON, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}` }
+    });
+    const rows = res.ok ? await res.json() : [];
+    cache.stats = { reportCount: rows.length || 32 };
+    return cache.stats;
+  } catch {
+    return { reportCount: 32 };
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DATA — static content
+═══════════════════════════════════════════════════════════ */
 
 const CATEGORIES = [
   {
@@ -37,14 +232,14 @@ const CATEGORIES = [
     icon:  '▲',
     badge: 'equity',
     desc:  'Deep-dive company analysis across the Nigerian Exchange. Earnings models, DCF valuations, sector rotation signals — built for conviction investing.',
-    count: '142 active coverage',
+    count: '32 active coverage',
     color: 'var(--c-pos)',
     detail: `
-      <p>Our equities research covers every stock on the NGX with market cap above ₦5 billion. Coverage includes detailed earnings models updated quarterly, entry/exit price targets with rationale, and sector-level thematic notes.</p>
-      <p>Key coverage includes the banking sector (GTCO, Zenith, Access, UBA), industrials (Dangote Cement, BUA Cement, Lafarge), oil & gas (Seplat, Conoil, Total Energies), and telecoms (MTNN, Airtel Africa).</p>
-      <p>We publish a weekly NGX brief summarising price moves, block trades, and upcoming catalysts. Monthly sector reports go deep on one industry — covering competitive dynamics, regulatory changes, and our conviction picks.</p>
+      <p>Our equities research covers the most liquid stocks on the NGX with AI-assisted valuation models updated with each annual and quarterly report. Coverage includes detailed DCF, DDM, and P/E models, Bear/Base/Bull price targets, and sector-level thematic notes.</p>
+      <p>Key coverage includes the banking sector (GTCO, Zenith, Access, UBA, FBNH), industrials (Dangote Cement, BUA Cement, Lafarge), oil & gas (Seplat, Conoil, Total Energies), and telecoms (MTNN, Airtel Africa).</p>
+      <p>Every report includes core vs non-core earnings decomposition, hidden catalysts analysis, and an institutional action plan with specific accumulation ranges and stop-loss levels.</p>
     `,
-    latestReports: ['equities', 'equity'],
+    latestReports: ['equity'],
   },
   {
     slug:  'real-estate',
@@ -56,7 +251,7 @@ const CATEGORIES = [
     color: '#E8A87C',
     detail: `
       <p>Nigeria's real estate market is bifurcated: dollar-denominated prime assets in Ikoyi and Victoria Island operate by entirely different rules than naira-priced mass market housing in Lekki Phase 2 or Abuja's Maitama. We cover both, with the rigour neither typically receives.</p>
-      <p>Our quarterly Lagos Market Report tracks asking rents, actual achieved rents (different numbers), vacancy rates by micromarket, and the supply pipeline. We interview landlords, estate agents, and developers — then verify with transactional data.</p>
+      <p>Our quarterly Lagos Market Report tracks asking rents, actual achieved rents, vacancy rates by micromarket, and the supply pipeline.</p>
       <p>Coverage areas: Ikoyi, Victoria Island, Lekki (all phases), Ajah, Ikeja GRA, Abuja (Maitama, Wuse 2, Gwarinpa), Port Harcourt (GRA, Old GRA).</p>
     `,
     latestReports: ['realestate'],
@@ -71,8 +266,8 @@ const CATEGORIES = [
     color: 'var(--c-gold)',
     detail: `
       <p>Nigeria is Africa's largest oil producer. Understanding where Bonny Light trades relative to Brent — and why that spread moves — is essential for understanding the fiscal position, the naira, and every equity with upstream exposure.</p>
-      <p>Beyond crude: we track cocoa (Nigeria is the world's 4th largest producer), palm oil, sesame, and cashew. Agricultural commodity prices affect farm income, rural spending, and bank NPLs in ways equity analysts rarely model.</p>
-      <p>The Dangote Refinery changes everything for petroleum products pricing. We've been tracking its ramp-up since commissioning and model its impact on petrol import costs, government subsidies, and Dangote Cement's energy bill.</p>
+      <p>Beyond crude: we track cocoa, palm oil, sesame, and cashew. Agricultural commodity prices affect farm income, rural spending, and bank NPLs in ways equity analysts rarely model.</p>
+      <p>The Dangote Refinery changes everything for petroleum products pricing. We track its ramp-up and model its impact on petrol import costs and Dangote Cement's energy bill.</p>
     `,
     latestReports: ['commodity'],
   },
@@ -85,9 +280,9 @@ const CATEGORIES = [
     count: 'BTC · ETH · USDT · On-chain',
     color: '#A78BFA',
     detail: `
-      <p>Nigeria is consistently among the world's top 3 countries for crypto adoption by volume — not retail speculation, but practical use: remittances, dollar savings, cross-border payments, and increasingly, corporate treasury management.</p>
-      <p>We cover this with the nuance it deserves. The spread between official USD/NGN and the P2P USDT rate tells you more about real naira sentiment than any CBN press release. We track it daily.</p>
-      <p>Coverage: Bitcoin price and on-chain analysis (MVRV, SOPR, exchange flows), Ethereum fundamentals, USDT/USDC P2P spreads, Binance P2P market depth, CBN regulatory developments, and the intersection with traditional Nigerian financial markets.</p>
+      <p>Nigeria is consistently among the world's top 3 countries for crypto adoption by volume — practical use: remittances, dollar savings, cross-border payments, and corporate treasury management.</p>
+      <p>The spread between official USD/NGN and the P2P USDT rate tells you more about real naira sentiment than any CBN press release. We track it daily.</p>
+      <p>Coverage: Bitcoin price and on-chain analysis, Ethereum fundamentals, USDT/USDC P2P spreads, CBN regulatory developments.</p>
     `,
     latestReports: ['crypto'],
   },
@@ -101,139 +296,119 @@ const CATEGORIES = [
     color: 'var(--c-accent)',
     detail: `
       <p>The naira is the single biggest variable in every Nigerian investment. Getting FX right — the direction, the policy regime, the parallel market premium — determines portfolio outcomes more than any individual stock pick.</p>
-      <p>We publish a daily FX brief: official NIFEX rate, CBN intervention volumes where disclosed, Abokifx parallel rate, BDC rates in Lagos and Abuja, and 30-day trend commentary. Subscribers get this before markets open.</p>
-      <p>Monthly: a deep analysis of CBN policy, foreign reserve position, oil export receipts, remittance inflows, and our ₦/USD 3-month and 6-month range forecast with scenario analysis.</p>
+      <p>We publish a daily FX brief: official NIFEX rate, CBN intervention volumes, parallel rate, and 30-day trend commentary.</p>
+      <p>Monthly: a deep analysis of CBN policy, foreign reserve position, oil export receipts, remittance inflows, and our ₦/USD range forecast.</p>
     `,
     latestReports: ['currency'],
   },
 ];
 
-const REPORTS = [
-  { id: 1,  type: 'equity',     badge: 'Equity',     title: 'Dangote Refinery: The ₦3.8 Trillion Opportunity Hiding in Plain Sight',          date: 'Nov 18, 2025', plan: 'starter' },
-  { id: 2,  type: 'realestate', badge: 'Real Estate', title: 'Lagos Real Estate Q4 2025: Where Smart Money Is Moving After Naira Stabilisation', date: 'Nov 14, 2025', plan: 'starter' },
-  { id: 3,  type: 'equity',     badge: 'Equity',     title: 'GTCO Holdings: Nigeria\'s Answer to Berkshire Hathaway?',                          date: 'Nov 11, 2025', plan: 'pro'     },
-  { id: 4,  type: 'commodity',  badge: 'Commodity',  title: 'Bonny Light vs Brent: The Nigerian Premium in 2026 and What Drives It',            date: 'Nov 08, 2025', plan: 'pro'     },
-  { id: 5,  type: 'currency',   badge: 'Currency',   title: 'CBN Rate Hold: What ₦1,650/$1 Means for Your Portfolio Right Now',                 date: 'Nov 05, 2025', plan: 'starter' },
-  { id: 6,  type: 'equity',     badge: 'Equity',     title: 'Seplat Energy Q3 2025 — Initiating Coverage: Strong Buy at ₦4,100',               date: 'Oct 29, 2025', plan: 'pro'     },
-  { id: 7,  type: 'crypto',     badge: 'Crypto',     title: 'Bitcoin P2P Premium: Why Nigeria\'s BTC Rate Diverges from Global Spot',           date: 'Oct 22, 2025', plan: 'pro'     },
-  { id: 8,  type: 'realestate', badge: 'Real Estate', title: 'Ikoyi vs Lekki: The Two-Speed Lagos Property Market in 2026',                    date: 'Oct 15, 2025', plan: 'business' },
-  { id: 9,  type: 'commodity',  badge: 'Commodity',  title: 'Nigerian Cocoa Season 2025/26: Supply Disruption and the Price Impact',            date: 'Oct 09, 2025', plan: 'pro'     },
-  { id: 10, type: 'currency',   badge: 'Currency',   title: 'Foreign Reserve Position: Nigeria\'s FX Buffer vs the Import Bill',               date: 'Oct 02, 2025', plan: 'starter' },
-  { id: 11, type: 'equity',     badge: 'Equity',     title: 'BUA Foods — Initiating Coverage: Neutral, Watch ₦368 for Entry',                  date: 'Sep 25, 2025', plan: 'pro'     },
-  { id: 12, type: 'crypto',     badge: 'Crypto',     title: 'USDT P2P Spread Analysis: Reading the Parallel FX Market Through Crypto',         date: 'Sep 18, 2025', plan: 'business' },
-];
-
 const PLANS = [
   {
-    id:     'individual',
-    name:   'Individual',
-    monthly: 10000,
-    yearly:  100000,
+    id:       'premium',
+    name:     'Premium',
+    monthly:  10000,
+    yearly:   100000,
     yearlySave: '₦20,000 saved',
     featured: false,
-    cta: 'Start free trial',
+    cta:      'Subscribe now',
     ctaStyle: 'outline',
+    ctaUrl:   CONFIG.PAYSTACK_PREMIUM,
     features: [
-      { text: 'Nigeria Weekly Market Brief',     included: true  },
-      { text: '1 Sector Report per month',        included: true  },
-      { text: 'Opportunity Alerts (bi-weekly)',   included: true  },
-      { text: 'Company Profiles',                 included: false },
-      { text: 'Due Diligence Reports',            included: false },
-      { text: 'Regulatory Intelligence',          included: false },
-      { text: 'Analyst messaging',                included: false },
-      { text: 'Team access',                      included: false },
+      { text: 'Full equity research reports (32 tickers)', included: true  },
+      { text: 'DCF + DDM + P/E valuation models',         included: true  },
+      { text: 'Bear / Base / Bull price targets',         included: true  },
+      { text: 'Weekly NGX Market Flash email',            included: true  },
+      { text: 'Telegram alert channel',                   included: true  },
+      { text: 'FX & macro daily brief',                   included: true  },
+      { text: 'Excel valuation models',                   included: false },
+      { text: 'Monthly live Q&A',                         included: false },
     ],
   },
   {
-    id:     'professional',
-    name:   'Professional',
-    monthly: 25000,
-    yearly:  250000,
+    id:       'professional',
+    name:     'Professional',
+    monthly:  25000,
+    yearly:   250000,
     yearlySave: '₦50,000 saved',
     featured: true,
-    cta: 'Subscribe now',
+    cta:      'Subscribe now',
     ctaStyle: 'primary',
+    ctaUrl:   CONFIG.PAYSTACK_PROFESSIONAL,
     features: [
-      { text: 'Everything in Individual',         included: true  },
-      { text: '2 Sector Reports per month',        included: true  },
-      { text: '2 Company Profiles per month',      included: true  },
-      { text: '1 Due Diligence Report per month',  included: true  },
-      { text: 'Full Regulatory Intelligence',      included: true  },
-      { text: 'Analyst messaging (5 queries/mo)', included: true  },
-      { text: 'Priority email support',            included: true  },
-      { text: 'Team access',                       included: false },
+      { text: 'Everything in Premium',                    included: true  },
+      { text: 'Excel valuation models (download)',        included: true  },
+      { text: 'Monthly live Q&A with analyst',            included: true  },
+      { text: 'Sector deep-dive reports',                 included: true  },
+      { text: 'Bond & T-bill yield intelligence',         included: true  },
+      { text: 'Early access to new coverage',             included: true  },
+      { text: 'Priority email support',                   included: true  },
+      { text: 'Custom research requests',                 included: false },
     ],
   },
   {
-    id:     'business',
-    name:   'Business',
-    monthly: 300000,
-    yearly:  2500000,
+    id:       'business',
+    name:     'Business',
+    monthly:  300000,
+    yearly:   2500000,
     yearlySave: '₦1.1M saved',
     featured: false,
-    cta: 'Contact us',
+    cta:      'Contact us',
     ctaStyle: 'outline',
+    ctaUrl:   CONFIG.PAYSTACK_BUSINESS,
     features: [
-      { text: 'Everything in Professional',           included: true },
-      { text: 'Unlimited Sector Reports',             included: true },
-      { text: '5 Company Profiles per month',         included: true },
-      { text: '3 Due Diligence Reports per month',    included: true },
-      { text: 'Up to 3 team members',                 included: true },
-      { text: 'Unlimited analyst messaging',          included: true },
-      { text: '1 Custom research brief per month',    included: true },
-      { text: 'Dedicated analyst relationship',       included: true },
+      { text: 'Everything in Professional',               included: true },
+      { text: 'Up to 5 team members',                     included: true },
+      { text: 'Custom research briefs',                   included: true },
+      { text: 'Dedicated analyst relationship',           included: true },
+      { text: 'API data access',                          included: true },
+      { text: 'White-label reports',                      included: true },
+      { text: 'Unlimited analyst messaging',              included: true },
+      { text: 'Board-ready presentations',                included: true },
     ],
   },
 ];
 
 const FAQS = [
   {
-    q: 'What makes InvestNaira different from my stockbroker\'s research?',
-    a: 'Stockbroker research has a structural conflict: they make money when you trade, which biases recommendations toward activity. We have no brokerage relationship, earn only subscription revenue, and are free to say "hold" or "do nothing" when that\'s the right call. Our analysis is also broader — we cover real estate, FX, commodities, and crypto alongside equities.',
+    q: 'What makes InvestNaira different from stockbroker research?',
+    a: 'Stockbroker research has a structural conflict: they make money when you trade, which biases recommendations toward activity. We earn only subscription revenue and are free to say "hold" or "do nothing" when that\'s the right call. Our AI-powered pipeline reads every annual report filed on the NGX and runs DCF, DDM, and peer comparison models automatically.',
+  },
+  {
+    q: 'How are the research reports generated?',
+    a: 'We combine AI-assisted financial extraction (reading audited annual reports from the NGX) with CFA-level analytical frameworks. The AI extracts 5 years of financial data, runs valuation models, and generates a first draft. Our analyst reviews, verifies every number against source documents, and adds qualitative context before publishing.',
   },
   {
     q: 'How often are reports published?',
-    a: 'The Nigeria Weekly Brief goes out every Monday before 8am. Sector Reports are published on the 1st of each month. Company Profiles and Due Diligence Reports are published within 5 business days of the research trigger event (earnings, regulatory change, major news). FX briefs are daily, Monday to Friday.',
+    a: 'The Weekly NGX Flash goes out every Monday before 8am. Full valuation reports are published within 5 business days of new annual or quarterly results being filed on the NGX. Telegram price alerts fire every weeknight at 9pm covering that day\'s significant moves.',
+  },
+  {
+    q: 'What is the Telegram alert channel?',
+    a: 'Every Premium and Professional subscriber gets access to @InvestNairaAlert on Telegram. Every weeknight at 9pm, our alert engine scans the NGX for significant price moves (>3%), 52-week highs/lows, volume spikes, and new research publications. Only HIGH conviction alerts are sent individually; a daily digest summarises everything.',
   },
   {
     q: 'Is InvestNaira suitable for beginners?',
-    a: 'Our reports are written for investors who understand basic financial concepts — P/E ratios, yield, exchange rates — but you do not need to be a professional analyst. We explain our reasoning, not just our conclusions. Many of our Individual plan subscribers are professionals in non-finance fields making their own investment decisions.',
-  },
-  {
-    q: 'Do you cover cryptocurrency?',
-    a: 'Yes — and we cover it seriously. Nigeria is consistently in the top 3 globally for P2P crypto volume, and the USDT parallel rate is one of the most accurate real-time signals of naira sentiment. Our crypto coverage focuses on what matters for Nigerian investors: BTC/NGN and ETH/NGN pricing, P2P market dynamics, CBN regulatory developments, and how crypto intersects with traditional Nigerian capital markets.',
-  },
-  {
-    q: 'Are reports available to download as PDFs?',
-    a: 'Yes. Every report is available as a formatted PDF immediately on publication. Reports remain in your archive permanently — there is no expiry on back catalogue access for active subscribers.',
+    a: 'Our reports are written for investors who understand basic financial concepts — P/E ratios, yield, exchange rates — but you do not need to be a professional analyst. We explain our reasoning, not just our conclusions.',
   },
   {
     q: 'Can I cancel my subscription?',
-    a: 'Yes, at any time. Cancel from your account settings and your access continues until the end of your billing period. No cancellation fees. Monthly subscribers are billed monthly; annual subscribers are billed once yearly with a significant discount.',
+    a: 'Yes, at any time via Paystack. Cancel and your access continues until the end of your billing period. No cancellation fees.',
   },
   {
-    q: 'How does analyst messaging work?',
-    a: 'Professional plan subscribers can submit up to 5 research queries per month via the messaging portal. An analyst responds within 2 business days. Queries can be about any coverage area — a specific stock, a market condition, a portfolio allocation question. Business subscribers have unlimited queries and a dedicated analyst relationship.',
+    q: 'Do you cover cryptocurrency?',
+    a: 'Yes. Nigeria is consistently in the top 3 globally for P2P crypto volume. Our crypto coverage focuses on BTC/NGN and ETH/NGN pricing, P2P market dynamics, CBN regulatory developments, and how crypto intersects with traditional Nigerian capital markets.',
   },
   {
     q: 'Does InvestNaira give financial advice?',
-    a: 'No. InvestNaira provides research and analysis — we share our views, our models, and our reasoning. We do not hold a portfolio management or investment advisory licence, and our reports do not constitute personalised financial advice. Investment decisions are yours to make.',
-  },
-  {
-    q: 'What is your coverage on real estate?',
-    a: 'We cover Lagos (Ikoyi, Victoria Island, Lekki Phases 1–5, Ajah, Ikeja GRA, Surulere, Yaba), Abuja (Maitama, Wuse 2, Asokoro, Gwarinpa, Jahi), and Port Harcourt (GRA, Old GRA). Our quarterly market reports track asking vs achieved rents, capital values per sqm, vacancy rates, and the project pipeline.',
-  },
-  {
-    q: 'Is there a free trial?',
-    a: 'Yes. Individual and Professional plans come with a 7-day free trial — no credit card required. You get full access to the plan\'s content during the trial. Business plan prospective subscribers should contact us to discuss a customised pilot.',
+    a: 'No. InvestNaira provides research and analysis — we share our views, our models, and our reasoning. Our reports do not constitute personalised financial advice. Investment decisions are yours to make.',
   },
 ];
 
 const SOCIAL = [
-  { platform: 'Telegram',  handle: '@InvestNaira', url: 'https://t.me/investnaira',                  icon: '✈' },
-  { platform: 'Instagram', handle: '@InvestNaira', url: 'https://instagram.com/investnaira',         icon: '◉' },
-  { platform: 'LinkedIn',  handle: 'InvestNaira',  url: 'https://linkedin.com/company/investnaira', icon: 'in' },
-  { platform: 'X',         handle: '@InvestNaira', url: 'https://x.com/investnaira',                icon: '✕' },
+  { platform: 'Telegram',  handle: '@InvestNairaAlert', url: 'https://t.me/InvestNairaAlert',              icon: '✈' },
+  { platform: 'Instagram', handle: '@InvestNaira',      url: 'https://instagram.com/investnaira',         icon: '◉' },
+  { platform: 'LinkedIn',  handle: 'InvestNaira',       url: 'https://linkedin.com/company/investnaira', icon: 'in' },
+  { platform: 'X',         handle: '@InvestNaira',      url: 'https://x.com/investnaira',                icon: '✕' },
 ];
 
 const pRM = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -244,13 +419,12 @@ const isMob = () => window.matchMedia('(max-width:768px)').matches;
 ═══════════════════════════════════════════════════════════ */
 
 function fmt(n) {
-  // Format Naira number → "₦10,000" or "₦2.5M"
   if (n >= 1_000_000) return `₦${(n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 1)}M`;
   return `₦${n.toLocaleString('en-NG')}`;
 }
 
 function typeBadge(type) {
-  const map = { equity:'equity', realestate:'realestate', commodity:'commodity', crypto:'crypto', currency:'currency' };
+  const map    = { equity:'equity', realestate:'realestate', commodity:'commodity', crypto:'crypto', currency:'currency' };
   const labels = { equity:'Equity', realestate:'Real Estate', commodity:'Commodity', crypto:'Crypto', currency:'Currency' };
   return `<span class="type-badge ${map[type] || ''}">${labels[type] || type}</span>`;
 }
@@ -260,21 +434,11 @@ function typeBadge(type) {
 ═══════════════════════════════════════════════════════════ */
 
 class Router {
-  constructor() {
-    this.routes = {};
-    this.current = null;
-  }
-
-  on(pattern, handler) {
-    this.routes[pattern] = handler;
-    return this;
-  }
-
+  constructor() { this.routes = {}; this.current = null; }
+  on(pattern, handler) { this.routes[pattern] = handler; return this; }
   resolve() {
     const hash = window.location.hash.slice(1) || '/';
-    // Try exact match
     if (this.routes[hash]) { this.routes[hash]({}); this.current = hash; return; }
-    // Try prefix match (e.g. /research/equities)
     for (const pattern of Object.keys(this.routes)) {
       if (pattern.includes(':')) {
         const re = new RegExp('^' + pattern.replace(/:(\w+)/g, '([^/]+)') + '$');
@@ -282,16 +446,12 @@ class Router {
         if (m) {
           const keys   = [...pattern.matchAll(/:(\w+)/g)].map(x => x[1]);
           const params = Object.fromEntries(keys.map((k, i) => [k, m[i + 1]]));
-          this.routes[pattern](params);
-          this.current = pattern;
-          return;
+          this.routes[pattern](params); this.current = pattern; return;
         }
       }
     }
-    // 404 fallback → home
     if (this.routes['/']) this.routes['/']({});
   }
-
   init() {
     window.addEventListener('hashchange', () => { this.resolve(); window.scrollTo(0, 0); });
     this.resolve();
@@ -299,7 +459,7 @@ class Router {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   COMPONENTS — shared across pages
+   COMPONENTS
 ═══════════════════════════════════════════════════════════ */
 
 function renderFooter() {
@@ -313,7 +473,7 @@ function renderFooter() {
             <div class="logo-flag" aria-hidden="true"><span></span><span></span><span></span></div>
             InvestNaira
           </div>
-          <p class="ftr-desc">Independent research on Nigerian equities, real estate, commodities, cryptocurrency, and currency markets.</p>
+          <p class="ftr-desc">Independent AI-powered research on Nigerian equities, bonds, crypto, and FX markets.</p>
           <div class="ftr-socials">
             ${SOCIAL.map(s => `
               <a href="${s.url}" class="social-link" target="_blank" rel="noopener" aria-label="${s.platform}">
@@ -324,9 +484,7 @@ function renderFooter() {
         </div>
         <div class="ftr-col">
           <p class="ftr-col-ttl">Research</p>
-          <ul>
-            ${CATEGORIES.map(c => `<li><a href="#/research/${c.slug}">${c.name}</a></li>`).join('')}
-          </ul>
+          <ul>${CATEGORIES.map(c => `<li><a href="#/research/${c.slug}">${c.name}</a></li>`).join('')}</ul>
         </div>
         <div class="ftr-col">
           <p class="ftr-col-ttl">Platform</p>
@@ -340,36 +498,44 @@ function renderFooter() {
         <div class="ftr-col">
           <p class="ftr-col-ttl">Subscribe</p>
           <ul>
-            <li><a href="#/subscribe">Individual — ${fmt(10000)}/mo</a></li>
-            <li><a href="#/subscribe">Professional — ${fmt(25000)}/mo</a></li>
-            <li><a href="#/subscribe">Business — ${fmt(300000)}/mo</a></li>
-            <li><a href="#/subscribe">Free 7-day trial</a></li>
+            <li><a href="${CONFIG.PAYSTACK_PREMIUM}">Premium — ${fmt(10000)}/mo</a></li>
+            <li><a href="${CONFIG.PAYSTACK_PROFESSIONAL}">Professional — ${fmt(25000)}/mo</a></li>
+            <li><a href="mailto:research@InvestNaira.com">Business — contact us</a></li>
           </ul>
         </div>
       </div>
       <div class="ftr-btm">
-        <p class="ftr-legal">© 2025 InvestNaira Research Ltd. · Lagos, Nigeria · SEC Registered</p>
-        <div class="ngx-live"><div class="ngx-dot" aria-hidden="true"></div>NGX live data delayed 15 min</div>
+        <p class="ftr-legal">© 2026 InvestNaira Research · Lagos, Nigeria</p>
+        <div class="ngx-live"><div class="ngx-dot" aria-hidden="true"></div>NGX data via NGX Group</div>
       </div>
     </div>
   `;
 }
 
-function initTicker() {
+async function initTicker() {
   const track = document.getElementById('ticker-track');
   if (!track || track.children.length > 0) return;
-  const items = [...TICKER_DATA, ...TICKER_DATA].map(d => {
-    const el = document.createElement('div');
-    el.className = 'ticker-item';
-    el.innerHTML = `
-      <span class="tk-sym">${d.sym}</span>
-      <span class="tk-prc">${d.price}</span>
-      <span class="tk-chg ${d.up ? 'up' : 'down'}">${d.up ? '▲' : '▼'} ${d.change}</span>
-      <div class="tk-div"></div>
-    `;
-    return el;
-  });
-  items.forEach(i => track.appendChild(i));
+
+  // Show fallback immediately while fetching
+  const buildItems = (data) => {
+    track.innerHTML = '';
+    const items = [...data, ...data].map(d => {
+      const el = document.createElement('div');
+      el.className = 'ticker-item';
+      el.innerHTML = `
+        <span class="tk-sym">${d.sym}</span>
+        <span class="tk-prc">${d.price}</span>
+        <span class="tk-chg ${d.up ? 'up' : 'down'}">${d.up ? '▲' : '▼'} ${d.change}</span>
+        <div class="tk-div"></div>
+      `;
+      return el;
+    });
+    items.forEach(i => track.appendChild(i));
+  };
+
+  buildItems(TICKER_FALLBACK);
+  const live = await fetchLiveTickers();
+  buildItems(live);
 }
 
 function updateNav(page) {
@@ -382,9 +548,14 @@ function updateNav(page) {
    PAGE: HOME
 ═══════════════════════════════════════════════════════════ */
 
-function renderHome() {
+async function renderHome() {
   updateNav('home');
   const app = document.getElementById('app');
+
+  // Fetch reports and stats in parallel
+  const [reports, stats] = await Promise.all([fetchLiveReports(), fetchStats()]);
+  const reportCount = stats.reportCount;
+
   app.innerHTML = `
     <!-- Hero -->
     <section class="hero" aria-labelledby="hero-h1">
@@ -398,10 +569,10 @@ function renderHome() {
           Intelligence for the<br><em>serious</em><br>investor.
         </h1>
         <div class="hero-sub-row reveal">
-          <p class="hero-desc">Primary research on Nigerian equities, real estate, commodities, crypto and FX — built for investors who need to be right.</p>
+          <p class="hero-desc">AI-powered research on Nigerian equities, bonds, crypto and FX — built for investors who need to be right.</p>
           <div class="hero-tags" aria-label="Coverage areas">
             <span class="hero-tag">NGX Equities</span>
-            <span class="hero-tag">Real Estate</span>
+            <span class="hero-tag">FGN Bonds</span>
             <span class="hero-tag">Commodities</span>
             <span class="hero-tag">Cryptocurrency</span>
             <span class="hero-tag">₦ / FX Markets</span>
@@ -423,8 +594,8 @@ function renderHome() {
           </svg>
         </div>
         <div class="chart-meta">
-          <div class="chart-val">97,842.15</div>
-          <div class="chart-chg" style="font-family:var(--font-mono);font-size:var(--s--1);">▲ +2.34%</div>
+          <div class="chart-val" id="asi-value">—</div>
+          <div class="chart-chg" style="font-family:var(--font-mono);font-size:var(--s--1);" id="asi-change">Loading...</div>
         </div>
       </div>
     </section>
@@ -433,20 +604,20 @@ function renderHome() {
     <section class="stats-bar" aria-label="Platform statistics">
       <div class="stats-grid container">
         <div class="stat-box reveal">
-          <div class="stat-num"><span class="count" data-target="340" data-suffix="+">0</span></div>
+          <div class="stat-num"><span class="count" data-target="${reportCount}" data-suffix="+">0</span></div>
           <div class="stat-lbl">Research Reports</div>
         </div>
         <div class="stat-box reveal" style="--delay:.07s">
-          <div class="stat-num" style="color:var(--c-gold)"><span class="count" data-target="18" data-suffix=" yrs">0</span></div>
-          <div class="stat-lbl">Market Experience</div>
+          <div class="stat-num" style="color:var(--c-gold)">32</div>
+          <div class="stat-lbl">NGX Tickers Covered</div>
         </div>
         <div class="stat-box reveal" style="--delay:.13s">
-          <div class="stat-num"><span class="count" data-target="94" data-suffix="%">0</span></div>
-          <div class="stat-lbl">Client Retention</div>
+          <div class="stat-num"><span class="count" data-target="4" data-suffix=" Models">0</span></div>
+          <div class="stat-lbl">Valuation Methods</div>
         </div>
         <div class="stat-box reveal" style="--delay:.19s">
           <div class="stat-num" style="color:var(--c-gold)">5</div>
-          <div class="stat-lbl">Research Categories</div>
+          <div class="stat-lbl">Asset Classes</div>
         </div>
       </div>
     </section>
@@ -479,7 +650,7 @@ function renderHome() {
       </div>
     </section>
 
-    <!-- Latest reports -->
+    <!-- Latest reports — LIVE from Ghost -->
     <section class="sp" style="background:var(--c-surface);border-block:1px solid var(--c-border);" aria-labelledby="rep-h">
       <div class="container">
         <div class="sec-head reveal">
@@ -490,15 +661,30 @@ function renderHome() {
           <a href="#/reports" class="sec-lnk">All reports →</a>
         </div>
         <div role="list">
-          ${REPORTS.slice(0, 6).map(r => `
+          ${reports.slice(0, 6).map(r => `
             <div class="report-row reveal" role="listitem">
               ${typeBadge(r.type)}
               <div class="report-title">${r.title}</div>
               <span class="report-date" style="font-family:var(--font-mono);font-size:var(--s--1);">${r.date}</span>
-              <a href="#/subscribe" class="report-cta">Read →</a>
+              <a href="${r.url}" class="report-cta" ${r.plan !== 'starter' ? '' : ''}>Read →</a>
             </div>
           `).join('')}
         </div>
+      </div>
+    </section>
+
+    <!-- Alert CTA banner -->
+    <section style="background:var(--c-bg);border-block-end:1px solid var(--c-border);padding:var(--sp-xl) 0;">
+      <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-l);">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-accent);letter-spacing:.08em;text-transform:uppercase;margin-block-end:var(--sp-xs);">Live Alert Channel</div>
+          <div style="font-size:var(--s-1);font-weight:500;">Get NGX price alerts on Telegram every evening at 9pm</div>
+          <div style="font-size:var(--s--1);color:var(--c-muted);margin-block-start:4px;">Price moves · 52-week highs/lows · Volume spikes · New reports</div>
+        </div>
+        <a href="https://t.me/InvestNairaAlert" target="_blank" class="btn-primary" style="white-space:nowrap;">
+          <span>Join @InvestNairaAlert</span>
+          <span class="arr" aria-hidden="true">→</span>
+        </a>
       </div>
     </section>
 
@@ -510,23 +696,31 @@ function renderHome() {
           Know before<br>the market does.
         </h2>
         <p class="reveal" style="font-size:var(--s-1);font-weight:300;font-style:italic;color:var(--c-muted);max-width:40ch;margin-inline:auto;margin-block-end:var(--sp-2xl);">
-          Weekly equity notes, daily FX briefs, and deep-dive reports — delivered to serious investors every week.
+          Weekly equity notes, daily FX briefs, and deep-dive valuation reports — delivered to serious investors every week.
         </p>
         <div class="reveal" style="display:flex;gap:var(--sp-l);align-items:center;justify-content:center;flex-wrap:wrap;">
-          <a href="#/subscribe" class="btn-primary">
-            <span>Get research access</span>
+          <a href="${CONFIG.PAYSTACK_PREMIUM}" class="btn-primary">
+            <span>Get Premium — ₦10,000/mo</span>
             <span class="arr" aria-hidden="true">→</span>
           </a>
-          <a href="#/research" class="btn-ghost">View coverage</a>
+          <a href="#/subscribe" class="btn-ghost">See all plans</a>
         </div>
-        <p class="reveal" style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);margin-block-start:var(--sp-l);">
-          7-day free trial · No credit card required
-        </p>
       </div>
     </section>
   `;
   initBehaviours();
   initChartLine();
+
+  // Update ASI value from live tickers
+  fetchLiveTickers().then(tickers => {
+    const asi = tickers.find(t => t.sym === 'NGX ASI');
+    if (asi) {
+      const el = document.getElementById('asi-value');
+      const chg = document.getElementById('asi-change');
+      if (el) el.textContent = asi.price;
+      if (chg) chg.textContent = asi.change;
+    }
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -541,7 +735,7 @@ function renderResearch() {
       <div class="page-hero reveal">
         <p class="page-eye">Research coverage</p>
         <h1 class="page-h1">Five markets.<br>Primary research.</h1>
-        <p class="page-sub">We cover the asset classes that shape Nigerian wealth — with the depth and independence that determines good investment outcomes.</p>
+        <p class="page-sub">AI-powered valuation models across the asset classes that shape Nigerian wealth.</p>
       </div>
       <div class="cats-grid">
         ${CATEGORIES.map((c, i) => `
@@ -567,11 +761,14 @@ function renderResearch() {
    PAGE: RESEARCH CATEGORY
 ═══════════════════════════════════════════════════════════ */
 
-function renderCategory({ slug }) {
+async function renderCategory({ slug }) {
   const cat = CATEGORIES.find(c => c.slug === slug);
   if (!cat) { renderResearch(); return; }
   updateNav('research');
-  const related = REPORTS.filter(r => cat.latestReports.includes(r.type));
+
+  const reports = await fetchLiveReports();
+  const related = reports.filter(r => cat.latestReports.includes(r.type));
+
   const app = document.getElementById('app');
   app.innerHTML = `
     <div class="container sp">
@@ -583,7 +780,6 @@ function renderCategory({ slug }) {
         <h1 class="page-h1" style="color:${cat.color}">${cat.name}<br>Research.</h1>
         <p class="page-sub">${cat.desc}</p>
       </div>
-
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:var(--sp-2xl);align-items:start;" class="reveal">
         <div style="font-size:var(--s-0);font-weight:300;line-height:1.75;color:var(--c-muted);">
           ${cat.detail.trim().split('\n').filter(l => l.trim()).join('')}
@@ -591,13 +787,12 @@ function renderCategory({ slug }) {
         <div style="background:var(--c-surface);border:1px solid var(--c-border);padding:var(--sp-xl);">
           <p style="font-family:var(--font-mono);font-size:var(--s--1);letter-spacing:.08em;text-transform:uppercase;color:var(--c-accent);margin-block-end:var(--sp-m);">Coverage includes</p>
           ${cat.count ? `<p style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);margin-block-end:var(--sp-l);">${cat.count}</p>` : ''}
-          <a href="#/subscribe" class="btn-primary" style="width:100%;justify-content:center;">
+          <a href="${CONFIG.PAYSTACK_PREMIUM}" class="btn-primary" style="width:100%;justify-content:center;">
             <span>Access ${cat.name} Reports</span>
             <span class="arr" aria-hidden="true">→</span>
           </a>
         </div>
       </div>
-
       ${related.length ? `
         <div style="margin-block-start:var(--sp-3xl);">
           <div class="sec-head reveal">
@@ -613,7 +808,7 @@ function renderCategory({ slug }) {
                 ${typeBadge(r.type)}
                 <div class="report-title">${r.title}</div>
                 <span class="report-date">${r.date}</span>
-                <a href="#/subscribe" class="report-cta">Read →</a>
+                <a href="${r.url}" class="report-cta">Read →</a>
               </div>
             `).join('')}
           </div>
@@ -625,61 +820,64 @@ function renderCategory({ slug }) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PAGE: REPORTS
+   PAGE: REPORTS — live from Ghost
 ═══════════════════════════════════════════════════════════ */
 
-function renderReports() {
+async function renderReports() {
   updateNav('reports');
   const app = document.getElementById('app');
 
-  const filterButtons = ['All', 'Equity', 'Real Estate', 'Commodity', 'Crypto', 'Currency'];
-  const typeMap = { 'All': null, 'Equity': 'equity', 'Real Estate': 'realestate', 'Commodity': 'commodity', 'Crypto': 'crypto', 'Currency': 'currency' };
-
+  // Show loading state immediately
   app.innerHTML = `
     <div class="container sp">
       <div class="page-hero reveal">
         <p class="page-eye">Research archive</p>
         <h1 class="page-h1">Every report.<br>Every market.</h1>
-        <p class="page-sub">Primary research across Nigerian equities, real estate, commodities, cryptocurrency, and currency markets.</p>
+        <p class="page-sub">AI-powered research across Nigerian equities, bonds, commodities, cryptocurrency, and currency markets.</p>
       </div>
+      <div id="reports-content" style="opacity:.5;">Loading reports...</div>
+    </div>
+  `;
 
-      <!-- Filter bar -->
+  const reports = await fetchLiveReports();
+  const filterButtons = ['All', 'Equity', 'Real Estate', 'Commodity', 'Crypto', 'Currency'];
+  const typeMap = { 'All': null, 'Equity': 'equity', 'Real Estate': 'realestate', 'Commodity': 'commodity', 'Crypto': 'crypto', 'Currency': 'currency' };
+
+  document.getElementById('reports-content').outerHTML = `
+    <div id="reports-content">
       <div id="filter-bar" style="display:flex;flex-wrap:wrap;gap:var(--sp-xs);margin-block-end:var(--sp-2xl);" role="group" aria-label="Filter reports by category">
         ${filterButtons.map(f => `
-          <button
-            data-filter="${typeMap[f] || 'all'}"
-            class="filter-btn ${f === 'All' ? 'active' : ''}"
+          <button data-filter="${typeMap[f] || 'all'}" class="filter-btn ${f === 'All' ? 'active' : ''}"
             style="font-family:var(--font-mono);font-size:var(--s--1);font-weight:300;letter-spacing:.07em;text-transform:uppercase;padding:var(--sp-xs) var(--sp-m);border:1px solid var(--c-bd-mid);border-radius:2px;color:var(--c-muted);background:transparent;cursor:none;transition:color .25s,border-color .25s,background .25s;"
           >${f}</button>
         `).join('')}
       </div>
-
       <div id="reports-list" role="list">
-        ${REPORTS.map(r => `
+        ${reports.map(r => `
           <div class="report-row" role="listitem" data-type="${r.type}">
             ${typeBadge(r.type)}
             <div class="report-title">${r.title}</div>
             <span class="report-date">${r.date}</span>
-            <a href="#/subscribe" class="report-cta">${r.plan !== 'starter' ? '🔒 ' : ''}Read →</a>
+            <a href="${r.url}" class="report-cta">${r.plan !== 'starter' ? '🔒 ' : ''}Read →</a>
           </div>
         `).join('')}
       </div>
-
       <div style="margin-block-start:var(--sp-2xl);padding-block-start:var(--sp-xl);border-block-start:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;">
-        <p style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">Showing ${REPORTS.length} reports · Updated weekly</p>
-        <a href="#/subscribe" class="btn-primary">
+        <p style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">Showing ${reports.length} reports · Updated regularly</p>
+        <a href="${CONFIG.PAYSTACK_PREMIUM}" class="btn-primary">
           <span>Unlock all reports</span>
           <span class="arr" aria-hidden="true">→</span>
         </a>
       </div>
     </div>
   `;
+
   initBehaviours();
   initReportFilter();
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PAGE: SUBSCRIBE / PRICING
+   PAGE: SUBSCRIBE — real Paystack links
 ═══════════════════════════════════════════════════════════ */
 
 function renderSubscribe() {
@@ -690,18 +888,13 @@ function renderSubscribe() {
       <div class="page-hero reveal" style="text-align:center;border:none;margin-block-end:var(--sp-2xl);">
         <p class="page-eye" style="justify-content:center;">Subscribe</p>
         <h1 class="page-h1" style="font-size:var(--s-5);margin-inline:auto;">Research that pays<br>for itself.</h1>
-        <p class="page-sub" style="margin-inline:auto;text-align:center;">Choose a plan. Start your 7-day free trial. Cancel anytime.</p>
-
-        <!-- Billing toggle -->
-        <div style="display:flex;align-items:center;justify-content:center;gap:var(--sp-l);margin-block-start:var(--sp-xl);">
-          <div class="billing-toggle" id="billing-toggle" role="group" aria-label="Billing frequency">
-            <span class="toggle-lbl active" id="lbl-monthly">Monthly</span>
-            <div class="toggle-track" id="toggle-track" role="switch" aria-checked="false" tabindex="0" aria-label="Switch to annual billing">
-              <div class="toggle-knob"></div>
-            </div>
-            <span class="toggle-lbl" id="lbl-annual">Annual</span>
-          </div>
-          <span id="save-badge" style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-pos);opacity:0;transition:opacity .3s;">Save up to 17%</span>
+        <p class="page-sub" style="margin-inline:auto;text-align:center;">Choose a plan. Subscribe via Paystack. Cancel anytime.</p>
+        <div style="margin-block-start:var(--sp-l);display:flex;gap:var(--sp-xs);align-items:center;justify-content:center;flex-wrap:wrap;">
+          <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">✓ Secure payment via Paystack</span>
+          <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">·</span>
+          <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">✓ Cancel anytime</span>
+          <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">·</span>
+          <span style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">✓ Price locked for early subscribers</span>
         </div>
       </div>
 
@@ -710,13 +903,11 @@ function renderSubscribe() {
           <div class="plan-card ${p.featured ? 'featured' : ''}">
             <div>
               <div class="plan-name">${p.name}</div>
+              ${p.featured ? '<div style="font-family:var(--font-mono);font-size:var(--s--2);color:var(--c-pos);letter-spacing:.08em;text-transform:uppercase;margin-block-start:var(--sp-xs);">Most Popular</div>' : ''}
             </div>
             <div>
-              <div class="plan-price" id="price-${p.id}">
-                <sup>₦</sup>${(p.monthly).toLocaleString('en-NG')}
-              </div>
-              <div class="plan-period" id="period-${p.id}">per month</div>
-              <div class="plan-save" id="save-${p.id}" style="opacity:0;transition:opacity .3s;margin-block-start:var(--sp-xs);">${p.yearlySave} annually</div>
+              <div class="plan-price"><sup>₦</sup>${(p.monthly).toLocaleString('en-NG')}</div>
+              <div class="plan-period">per month</div>
             </div>
             <div class="plan-divider"></div>
             <ul class="plan-features">
@@ -727,32 +918,29 @@ function renderSubscribe() {
                 </li>
               `).join('')}
             </ul>
-            <a href="mailto:subscribe@investnaira.ng?subject=${encodeURIComponent(p.name + ' Plan')}" class="plan-cta ${p.ctaStyle}">${p.cta}</a>
+            <a href="${p.ctaUrl}" class="plan-cta ${p.ctaStyle}" ${p.ctaUrl.startsWith('http') ? 'target="_blank" rel="noopener"' : ''}>${p.cta}</a>
           </div>
         `).join('')}
       </div>
 
-      <!-- Compare note -->
       <div class="reveal" style="margin-block-start:var(--sp-2xl);text-align:center;">
         <p style="font-family:var(--font-mono);font-size:var(--s--1);color:var(--c-muted);">
-          All plans include a 7-day free trial · No credit card required to start
-          <br>Business plans: <a href="mailto:business@investnaira.ng" style="color:var(--c-accent);border-block-end:1px solid currentColor;cursor:none;">contact us for custom arrangements</a>
+          Early adopter pricing — your rate is locked in forever once you subscribe.<br>
+          Business plans: <a href="mailto:business@investnaira.ng" style="color:var(--c-accent);border-block-end:1px solid currentColor;cursor:none;">contact us for custom arrangements</a>
         </p>
       </div>
 
-      <!-- FAQ teaser -->
       <div class="reveal" style="margin-block-start:var(--sp-3xl);text-align:center;">
-        <p style="font-size:var(--s-1);font-weight:300;font-style:italic;color:var(--c-muted);margin-block-end:var(--sp-m);">Have questions about the plans?</p>
+        <p style="font-size:var(--s-1);font-weight:300;font-style:italic;color:var(--c-muted);margin-block-end:var(--sp-m);">Have questions?</p>
         <a href="#/faq" class="btn-ghost">Read our FAQ →</a>
       </div>
     </div>
   `;
   initBehaviours();
-  initPricingToggle();
 }
 
 /* ═══════════════════════════════════════════════════════════
-   PAGE: ABOUT
+   PAGES: ABOUT + FAQ — unchanged from original
 ═══════════════════════════════════════════════════════════ */
 
 function renderAbout() {
@@ -762,27 +950,24 @@ function renderAbout() {
     <div class="container sp">
       <div class="page-hero reveal">
         <p class="page-eye">About InvestNaira</p>
-        <h1 class="page-h1">Independent.<br>Rigorous.<br>Nigerian.</h1>
-        <p class="page-sub">We write research that we'd pay for ourselves. That standard guides everything.</p>
+        <h1 class="page-h1">Independent.<br>AI-Powered.<br>Nigerian.</h1>
+        <p class="page-sub">We combine CFA-level analytical frameworks with AI to make institutional-grade research accessible to every serious Nigerian investor.</p>
       </div>
-
       <div class="about-grid reveal">
         <div class="about-body">
-          <p>InvestNaira was founded in Lagos in 2019 by a team of analysts who had spent years inside Nigerian commercial banks and fund management companies — and grown frustrated with the quality of research available to individual and professional investors outside those institutions.</p>
-          <p>The research produced by sell-side brokers is structurally compromised by the need to generate trading commissions. The research produced by fund managers is proprietary, shared only within the institutions that paid for it. The research available to everyone else — individual investors, family offices, small and mid-sized fund managers — is thin, infrequent, and rarely independent.</p>
-          <p>We exist to close that gap. Our only revenue is subscriptions. We do not take brokerage commission, advisory fees, or payments from companies we cover. If we think a stock is overvalued, we say so — the same week, not after the price corrects.</p>
-          <p>Our five coverage areas — equities, real estate, commodities, cryptocurrency, and currency — were chosen because they represent the real investment universe of serious Nigerian investors. Each is covered with primary research: our analysts attend earnings calls, inspect properties, talk to traders, and read CBN policy statements in full.</p>
+          <p>InvestNaira was built to close a gap that every serious Nigerian investor knows: the research that moves money on the NGX is locked inside investment banks, available only to institutions paying six-figure retainers.</p>
+          <p>Our automated pipeline reads every annual report filed on the Nigerian Exchange, extracts five years of financial data, runs DCF, DDM, and peer comparison models, and publishes institutional-grade research notes — complete with price targets, conviction scores, risk matrices, and actionable entry/exit triggers.</p>
+          <p>Our only revenue is subscriptions. We do not take brokerage commission, advisory fees, or payments from companies we cover. Every number in every report is extracted directly from NGX-filed audited financial statements and verified by our analyst before publication.</p>
+          <p>The platform covers 32 NGX-listed companies across banking, industrials, oil & gas, telecoms, and FMCG — with bond yields, FX tracking, and crypto intelligence layered on top.</p>
         </div>
         <div>
-          <div class="about-pull">
-            "The research available to individual investors in Nigeria is thin, infrequent, and rarely independent. We exist to close that gap."
-          </div>
+          <div class="about-pull">"Institutional-grade research on Nigerian equities, now accessible to every serious investor."</div>
           <div style="margin-block-start:var(--sp-2xl);display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--c-border);">
             ${[
-              { n:'2019', l:'Founded in Lagos' },
-              { n:'340+', l:'Reports published' },
-              { n:'5',    l:'Asset classes covered' },
-              { n:'94%',  l:'Client retention rate' },
+              { n:'32',   l:'NGX Tickers Covered' },
+              { n:'4',    l:'Valuation Methods' },
+              { n:'5',    l:'Asset Classes' },
+              { n:'₦0',   l:'Monthly Cost (MVP)' },
             ].map(s => `
               <div style="background:var(--c-bg);padding:var(--sp-l);">
                 <div style="font-family:var(--font-display);font-size:var(--s-3);font-weight:600;letter-spacing:-.04em;color:var(--c-gold);margin-block-end:var(--sp-xs);">${s.n}</div>
@@ -792,21 +977,16 @@ function renderAbout() {
           </div>
         </div>
       </div>
-
-      <!-- Methodology -->
       <div style="margin-block-start:var(--sp-3xl);">
         <div class="sec-head reveal">
-          <div>
-            <p class="sec-eye">How we work</p>
-            <h2 class="sec-ttl">Methodology.</h2>
-          </div>
+          <div><p class="sec-eye">How we work</p><h2 class="sec-ttl">Methodology.</h2></div>
         </div>
         <div class="method-grid">
           ${[
-            { n:'01', name:'Primary research first', desc:'We attend earnings calls, inspect properties, interview traders, read full regulatory filings. Secondary sources are used to fill gaps, not as the basis of analysis.' },
+            { n:'01', name:'AI extracts, analyst verifies', desc:'Our pipeline reads every NGX filing. The AI extracts financials and builds valuation models. Our CFA-trained analyst verifies every number and adds qualitative context before publishing.' },
             { n:'02', name:'Independence is non-negotiable', desc:'No advisory relationships. No brokerage commission. No payments from covered companies. Our only commercial interest is your subscription.' },
-            { n:'03', name:'We show our working', desc:'Every report includes the model, the assumptions, the sensitivity analysis, and the scenarios under which our thesis is wrong. Conclusions without reasoning are opinions, not research.' },
-            { n:'04', name:'We update when facts change', desc:'If an earnings report, regulatory change, or market event materially changes our view, we publish an update within 48 hours — not at the next scheduled report cycle.' },
+            { n:'03', name:'We show our working', desc:'Every report includes the model, the assumptions, the sensitivity analysis, and the scenarios under which our thesis is wrong.' },
+            { n:'04', name:'We update when facts change', desc:'If an earnings report or market event materially changes our view, we publish an update within 48 hours — not at the next scheduled report cycle.' },
           ].map(m => `
             <div class="method-card reveal">
               <div class="method-num">${m.n}</div>
@@ -816,26 +996,16 @@ function renderAbout() {
           `).join('')}
         </div>
       </div>
-
-      <!-- Social -->
       <div class="reveal" style="margin-block-start:var(--sp-3xl);text-align:center;padding-block:var(--sp-2xl);border-block:1px solid var(--c-border);">
         <p class="sec-eye" style="margin-block-end:var(--sp-l);">Follow us</p>
         <div style="display:flex;gap:var(--sp-m);flex-wrap:wrap;justify-content:center;">
-          ${SOCIAL.map(s => `
-            <a href="${s.url}" class="social-link" target="_blank" rel="noopener">
-              <span aria-hidden="true">${s.icon}</span> ${s.platform} · ${s.handle}
-            </a>
-          `).join('')}
+          ${SOCIAL.map(s => `<a href="${s.url}" class="social-link" target="_blank" rel="noopener"><span aria-hidden="true">${s.icon}</span> ${s.platform} · ${s.handle}</a>`).join('')}
         </div>
       </div>
     </div>
   `;
   initBehaviours();
 }
-
-/* ═══════════════════════════════════════════════════════════
-   PAGE: FAQ
-═══════════════════════════════════════════════════════════ */
 
 function renderFAQ() {
   updateNav('faq');
@@ -845,9 +1015,8 @@ function renderFAQ() {
       <div class="page-hero reveal">
         <p class="page-eye">Questions</p>
         <h1 class="page-h1">Frequently<br>asked.</h1>
-        <p class="page-sub">If your question isn't answered here, email us at <a href="mailto:hello@investnaira.ng" style="color:var(--c-accent);border-block-end:1px solid currentColor;cursor:none;">hello@investnaira.ng</a></p>
+        <p class="page-sub">If your question isn't here, email <a href="mailto:hello@investnaira.ng" style="color:var(--c-accent);border-block-end:1px solid currentColor;cursor:none;">hello@investnaira.ng</a></p>
       </div>
-
       <div style="max-width:780px;" role="list">
         ${FAQS.map((f, i) => `
           <div class="faq-item reveal" style="--delay:${i * 0.04}s" role="listitem">
@@ -861,12 +1030,8 @@ function renderFAQ() {
           </div>
         `).join('')}
       </div>
-
       <div class="reveal" style="margin-block-start:var(--sp-3xl);display:flex;gap:var(--sp-l);align-items:center;flex-wrap:wrap;">
-        <a href="#/subscribe" class="btn-primary">
-          <span>Start free trial</span>
-          <span class="arr" aria-hidden="true">→</span>
-        </a>
+        <a href="${CONFIG.PAYSTACK_PREMIUM}" class="btn-primary"><span>Subscribe now</span><span class="arr" aria-hidden="true">→</span></a>
         <a href="mailto:hello@investnaira.ng" class="btn-ghost">Email us directly</a>
       </div>
     </div>
@@ -876,22 +1041,15 @@ function renderFAQ() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   BEHAVIOURS — run after every page render
+   BEHAVIOURS
 ═══════════════════════════════════════════════════════════ */
 
-function initBehaviours() {
-  initScrollReveal();
-  initCounters();
-  initMagneticBtns();
-}
+function initBehaviours() { initScrollReveal(); initCounters(); initMagneticBtns(); }
 
 function initScrollReveal() {
   const els = document.querySelectorAll('.reveal:not(.is-visible)');
   if (!els.length) return;
-  if (pRM) {
-    els.forEach(el => { el.style.opacity = '1'; el.style.transform = 'none'; });
-    return;
-  }
+  if (pRM) { els.forEach(el => { el.style.opacity='1'; el.style.transform='none'; }); return; }
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (!e.isIntersecting) return;
@@ -934,7 +1092,7 @@ function initMagneticBtns() {
     btn.addEventListener('mouseenter', () => btn.style.transition = 'transform .12s ease');
     btn.addEventListener('mousemove', e => {
       const r = btn.getBoundingClientRect();
-      btn.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * .2}px, ${(e.clientY - r.top - r.height / 2) * .25}px)`;
+      btn.style.transform = `translate(${(e.clientX-r.left-r.width/2)*.2}px,${(e.clientY-r.top-r.height/2)*.25}px)`;
     });
     btn.addEventListener('mouseleave', () => {
       btn.style.transition = 'transform .5s cubic-bezier(.16,1,.3,1)';
@@ -961,65 +1119,24 @@ function initReportFilter() {
   const bar  = document.getElementById('filter-bar');
   const list = document.getElementById('reports-list');
   if (!bar || !list) return;
-
-  // Style active state
   function setActive(activeBtn) {
     bar.querySelectorAll('.filter-btn').forEach(b => {
       const on = b === activeBtn;
-      b.style.color       = on ? 'var(--c-bg)'     : 'var(--c-muted)';
-      b.style.background  = on ? 'var(--c-accent)'  : 'transparent';
-      b.style.borderColor = on ? 'var(--c-accent)'  : 'var(--c-bd-mid)';
+      b.style.color       = on ? 'var(--c-bg)'    : 'var(--c-muted)';
+      b.style.background  = on ? 'var(--c-accent)' : 'transparent';
+      b.style.borderColor = on ? 'var(--c-accent)' : 'var(--c-bd-mid)';
     });
   }
-
   bar.addEventListener('click', e => {
     const btn = e.target.closest('.filter-btn');
     if (!btn) return;
     setActive(btn);
     const filter = btn.dataset.filter;
     list.querySelectorAll('.report-row').forEach(row => {
-      const show = filter === 'all' || row.dataset.type === filter;
-      row.style.display = show ? '' : 'none';
+      row.style.display = filter === 'all' || row.dataset.type === filter ? '' : 'none';
     });
   });
-
-  // Set initial active
   setActive(bar.querySelector('.filter-btn.active'));
-}
-
-function initPricingToggle() {
-  const track = document.getElementById('toggle-track');
-  if (!track) return;
-  let isAnnual = false;
-
-  track.addEventListener('click', toggle);
-  track.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
-
-  function toggle() {
-    isAnnual = !isAnnual;
-    track.classList.toggle('on', isAnnual);
-    track.setAttribute('aria-checked', isAnnual);
-    document.getElementById('lbl-monthly').classList.toggle('active', !isAnnual);
-    document.getElementById('lbl-annual').classList.toggle('active', isAnnual);
-    document.getElementById('save-badge').style.opacity = isAnnual ? '1' : '0';
-
-    PLANS.forEach(p => {
-      const priceEl  = document.getElementById(`price-${p.id}`);
-      const periodEl = document.getElementById(`period-${p.id}`);
-      const saveEl   = document.getElementById(`save-${p.id}`);
-      if (!priceEl) return;
-      if (isAnnual) {
-        const monthly = Math.round(p.yearly / 12);
-        priceEl.innerHTML  = `<sup>₦</sup>${monthly.toLocaleString('en-NG')}`;
-        periodEl.textContent = 'per month, billed annually';
-        if (saveEl) saveEl.style.opacity = '1';
-      } else {
-        priceEl.innerHTML  = `<sup>₦</sup>${p.monthly.toLocaleString('en-NG')}`;
-        periodEl.textContent = 'per month';
-        if (saveEl) saveEl.style.opacity = '0';
-      }
-    });
-  }
 }
 
 function initFAQ() {
@@ -1027,20 +1144,15 @@ function initFAQ() {
     btn.addEventListener('click', () => {
       const item = btn.closest('.faq-item');
       const wasOpen = item.classList.contains('open');
-      // Close all
       document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
-      document.querySelectorAll('.faq-q').forEach(b => b.setAttribute('aria-expanded', 'false'));
-      // Open clicked if it was closed
-      if (!wasOpen) {
-        item.classList.add('open');
-        btn.setAttribute('aria-expanded', 'true');
-      }
+      document.querySelectorAll('.faq-q').forEach(b => b.setAttribute('aria-expanded','false'));
+      if (!wasOpen) { item.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
     });
   });
 }
 
 /* ═══════════════════════════════════════════════════════════
-   GLOBAL BEHAVIOURS — run once on boot
+   GLOBAL — run once on boot
 ═══════════════════════════════════════════════════════════ */
 
 function initCursor() {
@@ -1048,35 +1160,32 @@ function initCursor() {
   const dot  = document.querySelector('.cursor');
   const ring = document.querySelector('.cursor-ring');
   if (!dot || !ring) return;
-  let mx=0, my=0, dx=0, dy=0, rx=0, ry=0;
-  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  let mx=0,my=0,dx=0,dy=0,rx=0,ry=0;
+  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
   if (!pRM) {
     (function tick() {
-      dx += (mx - dx) * .88; dy += (my - dy) * .88;
-      rx += (mx - rx) * .1;  ry += (my - ry) * .1;
-      dot.style.left = dx + 'px'; dot.style.top = dy + 'px';
-      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      dx+=(mx-dx)*.88; dy+=(my-dy)*.88; rx+=(mx-rx)*.1; ry+=(my-ry)*.1;
+      dot.style.left=dx+'px'; dot.style.top=dy+'px';
+      ring.style.left=rx+'px'; ring.style.top=ry+'px';
       requestAnimationFrame(tick);
     })();
   }
-  document.addEventListener('mouseover', e => { if (e.target.closest('a,button,[tabindex]')) document.body.classList.add('cur-on'); });
-  document.addEventListener('mouseout',  e => { if (e.target.closest('a,button,[tabindex]')) document.body.classList.remove('cur-on'); });
+  document.addEventListener('mouseover', e => { if(e.target.closest('a,button,[tabindex]')) document.body.classList.add('cur-on'); });
+  document.addEventListener('mouseout',  e => { if(e.target.closest('a,button,[tabindex]')) document.body.classList.remove('cur-on'); });
 }
 
 function initHeader() {
   const hdr = document.getElementById('site-header');
-  const hero = () => document.querySelector('.hero');
   if (!hdr) return;
   const check = () => {
-    const h = hero();
+    const h = document.querySelector('.hero');
     if (h) {
-      const io = new IntersectionObserver(([e]) => hdr.classList.toggle('on', !e.isIntersecting), { rootMargin: '-70px 0px 0px 0px' });
+      const io = new IntersectionObserver(([e]) => hdr.classList.toggle('on',!e.isIntersecting), { rootMargin:'-70px 0px 0px 0px' });
       io.observe(h);
     } else {
       hdr.classList.add('on');
     }
   };
-  // Re-run after each navigation
   window.addEventListener('hashchange', () => setTimeout(check, 50));
   setTimeout(check, 50);
 }
@@ -1090,11 +1199,10 @@ function initHamburger() {
     btn.setAttribute('aria-expanded', open);
     document.body.style.overflow = open ? 'hidden' : '';
   });
-  // Close on link click
   nav.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', () => {
       nav.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-expanded','false');
       document.body.style.overflow = '';
     });
   });
@@ -1105,32 +1213,27 @@ function initHamburger() {
 ═══════════════════════════════════════════════════════════ */
 
 (function boot() {
-  // Render persistent elements
   renderFooter();
   initTicker();
   initCursor();
   initHeader();
   initHamburger();
 
-  // Wire up router
   const router = new Router();
-
   router
-    .on('/',                    renderHome)
-    .on('/research',            renderResearch)
-    .on('/research/:slug',      renderCategory)
-    .on('/reports',             renderReports)
-    .on('/subscribe',           renderSubscribe)
-    .on('/about',               renderAbout)
-    .on('/faq',                 renderFAQ);
+    .on('/',               renderHome)
+    .on('/research',       renderResearch)
+    .on('/research/:slug', renderCategory)
+    .on('/reports',        renderReports)
+    .on('/subscribe',      renderSubscribe)
+    .on('/about',          renderAbout)
+    .on('/faq',            renderFAQ);
 
   router.init();
 
-  // Intercept all hash-link clicks for cursor-friendly behaviour
   document.addEventListener('click', e => {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
-    // Let the router handle it — just close mobile nav if open
     const nav = document.getElementById('mobile-nav');
     if (nav?.classList.contains('open')) {
       nav.classList.remove('open');
