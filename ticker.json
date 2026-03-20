@@ -1,0 +1,20 @@
+{
+  "updated": "2026-03-19T21:00:00",
+  "tape": [
+    { "sym": "NGX ASI",     "price": "97,842",    "change": "+2.34%", "up": true  },
+    { "sym": "USD/NGN",     "price": "₦1,620",    "change": "+0.18%", "up": true  },
+    { "sym": "GTCO",        "price": "₦118.90",   "change": "+0.85%", "up": true  },
+    { "sym": "ZENITHBANK",  "price": "₦42.80",    "change": "+0.70%", "up": true  },
+    { "sym": "DANGCEM",     "price": "₦312.40",   "change": "+1.20%", "up": true  },
+    { "sym": "MTNN",        "price": "₦228.50",   "change": "-1.10%", "up": false },
+    { "sym": "ACCESSCORP",  "price": "₦22.15",    "change": "+0.45%", "up": true  },
+    { "sym": "SEPLAT",      "price": "₦4,288",    "change": "+3.15%", "up": true  },
+    { "sym": "AIRTELAFRI",  "price": "₦2,350",    "change": "+0.64%", "up": true  },
+    { "sym": "UBA",         "price": "₦28.50",    "change": "+1.25%", "up": true  },
+    { "sym": "FBNH",        "price": "₦35.20",    "change": "+0.57%", "up": true  },
+    { "sym": "BUACEMENT",   "price": "₦122.00",   "change": "-0.41%", "up": false },
+    { "sym": "NESTLE",      "price": "₦1,050",    "change": "+0.29%", "up": true  },
+    { "sym": "BTC/NGN",     "price": "₦168.4M",   "change": "+1.84%", "up": true  },
+    { "sym": "BONNY LIGHT", "price": "$74.20",    "change": "-0.32%", "up": false }
+  ]
+}
