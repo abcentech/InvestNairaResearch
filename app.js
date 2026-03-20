@@ -532,68 +532,46 @@ async function initTicker() {
     });
   };
 
-  // Show fallback immediately so ticker is never empty
+  // Always show fallback immediately — ticker is never empty
   buildItems(TICKER_FALLBACK);
 
-  // Try to fetch live data
+  // Fetch from ticker.json in same GitHub repo — no CORS issues
   try {
-    const tickers = ['GTCO','ZENITHBANK','DANGCEM','MTNN','ACCESSCORP','SEPLAT','AIRTELAFRI','UBA','FBNH','BUACEMENT'];
-    const q = tickers.map(t => `ticker=eq.${t}`).join('&');
-    // Get latest price per ticker using a simpler query
-    const url = `${CONFIG.SUPABASE_URL}/rest/v1/daily_prices?select=ticker,close,date&order=date.desc&limit=100`;
-    const res = await fetch(url, {
-      headers: {
-        'apikey': CONFIG.SUPABASE_ANON,
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}`,
-        'Content-Type': 'application/json',
-      }
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const rows = await res.json();
-
-    // Get latest price per ticker
-    const latest = {};
-    for (const row of rows) {
-      if (!latest[row.ticker] && tickers.includes(row.ticker)) {
-        latest[row.ticker] = row;
+    const cacheBust = Math.floor(Date.now() / 300000); // refresh every 5 min
+    const r = await fetch(`/ticker.json?v=${cacheBust}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    if (data.tape && data.tape.length >= 3) {
+      buildItems(data.tape);
+      // Update ASI in hero chart
+      const asi = data.tape.find(t => t.sym === 'NGX ASI');
+      if (asi) {
+        const el = document.getElementById('asi-value');
+        const chg = document.getElementById('asi-change');
+        if (el) el.textContent = asi.price;
+        if (chg) { chg.textContent = asi.change; chg.style.color = asi.up ? 'var(--c-pos)' : 'var(--c-neg)'; }
       }
     }
-
-    if (Object.keys(latest).length === 0) throw new Error('No data');
-
-    const liveTape = tickers
-      .filter(t => latest[t])
-      .map(t => ({
-        sym: t,
-        price: `₦${Number(latest[t].close).toLocaleString('en-NG', {maximumFractionDigits: 2})}`,
-        change: '—',
-        up: true,
-      }));
-
-    // Add macro items
+  } catch (e) {
+    // Fallback already showing — try CoinGecko for crypto at minimum
     try {
-      const macroRes = await fetch(
-        `${CONFIG.SUPABASE_URL}/rest/v1/macro_data?select=metric,value&order=date.desc&limit=30`,
-        { headers: { 'apikey': CONFIG.SUPABASE_ANON, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}` } }
-      );
-      if (macroRes.ok) {
-        const macroRows = await macroRes.json();
-        const macro = {};
-        macroRows.forEach(r => { if (!macro[r.metric]) macro[r.metric] = r.value; });
-        if (macro['usd_ngn_official']) liveTape.unshift({ sym: 'USD/NGN', price: `₦${Number(macro['usd_ngn_official']).toLocaleString('en-NG')}`, change: '—', up: true });
-        if (macro['ngx_asi']) liveTape.unshift({ sym: 'NGX ASI', price: Number(macro['ngx_asi']).toLocaleString('en-NG', {maximumFractionDigits: 0}), change: '—', up: true });
-        if (macro['bonny_light'] || macro['brent_crude']) {
-          const oil = macro['bonny_light'] || macro['brent_crude'];
-          liveTape.push({ sym: 'BONNY LIGHT', price: `$${Number(oil).toFixed(2)}`, change: '—', up: true });
+      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=ngn,usd');
+      if (r.ok) {
+        const crypto = await r.json();
+        const updated = [...TICKER_FALLBACK];
+        if (crypto.bitcoin?.ngn) {
+          const idx = updated.findIndex(t => t.sym === 'BTC/NGN');
+          const item = { sym: 'BTC/NGN', price: `₦${(crypto.bitcoin.ngn/1_000_000).toFixed(2)}M`, change: '+—', up: true };
+          if (idx >= 0) updated[idx] = item; else updated.push(item);
         }
+        if (crypto.ethereum?.ngn) {
+          const idx = updated.findIndex(t => t.sym === 'ETH/NGN');
+          const item = { sym: 'ETH/NGN', price: `₦${(crypto.ethereum.ngn/1_000_000).toFixed(2)}M`, change: '+—', up: true };
+          if (idx >= 0) updated[idx] = item; else updated.push(item);
+        }
+        buildItems(updated);
       }
     } catch {}
-
-    if (liveTape.length >= 3) buildItems(liveTape);
-
-  } catch (e) {
-    console.warn('Live ticker failed, using fallback:', e.message);
-    // Fallback already showing — nothing to do
   }
 }
 
