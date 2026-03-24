@@ -517,6 +517,9 @@ async function initTicker() {
   const track = document.getElementById('ticker-track');
   if (!track) return;
 
+  // Pause animation while building
+  track.style.animationPlayState = 'paused';
+
   const buildItems = (data) => {
     track.innerHTML = '';
     [...data, ...data].forEach(d => {
@@ -530,20 +533,21 @@ async function initTicker() {
       `;
       track.appendChild(el);
     });
+    // Resume animation after build
+    track.style.animationPlayState = 'running';
   };
 
-  // Always show fallback immediately — ticker is never empty
+  // Show fallback immediately — ticker is never empty
   buildItems(TICKER_FALLBACK);
 
   // Fetch from ticker.json in same GitHub repo — no CORS issues
   try {
-    const cacheBust = Math.floor(Date.now() / 300000); // refresh every 5 min
+    const cacheBust = Math.floor(Date.now() / 300000);
     const r = await fetch(`/ticker.json?v=${cacheBust}`);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
     if (data.tape && data.tape.length >= 3) {
       buildItems(data.tape);
-      // Update ASI in hero chart
       const asi = data.tape.find(t => t.sym === 'NGX ASI');
       if (asi) {
         const el = document.getElementById('asi-value');
@@ -553,7 +557,7 @@ async function initTicker() {
       }
     }
   } catch (e) {
-    // Fallback already showing — try CoinGecko for crypto at minimum
+    // Fallback already showing — try CoinGecko for crypto
     try {
       const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=ngn,usd');
       if (r.ok) {
@@ -562,11 +566,6 @@ async function initTicker() {
         if (crypto.bitcoin?.ngn) {
           const idx = updated.findIndex(t => t.sym === 'BTC/NGN');
           const item = { sym: 'BTC/NGN', price: `₦${(crypto.bitcoin.ngn/1_000_000).toFixed(2)}M`, change: '+—', up: true };
-          if (idx >= 0) updated[idx] = item; else updated.push(item);
-        }
-        if (crypto.ethereum?.ngn) {
-          const idx = updated.findIndex(t => t.sym === 'ETH/NGN');
-          const item = { sym: 'ETH/NGN', price: `₦${(crypto.ethereum.ngn/1_000_000).toFixed(2)}M`, change: '+—', up: true };
           if (idx >= 0) updated[idx] = item; else updated.push(item);
         }
         buildItems(updated);
