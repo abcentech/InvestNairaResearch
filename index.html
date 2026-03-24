@@ -141,7 +141,8 @@
     }
 
     @layer ticker {
-      .ticker-bar { background: var(--c-surface); border-block-end: 1px solid var(--c-border); padding-block: var(--sp-2xs); overflow: hidden; position: relative; z-index: 10; margin-block-start: 64px; }
+      .ticker-bar { background: var(--c-surface); border-block-end: 1px solid var(--c-border); padding-block: var(--sp-2xs); overflow: hidden; position: relative; z-index: 10; margin-block-start: 0;
+padding-block-start: 64px; }
       .ticker-track { display: flex; width: max-content; gap: var(--sp-2xl); align-items: center; animation-play-state: paused;}
       .ticker-item { display: flex; align-items: center; gap: var(--sp-xs); white-space: nowrap; font-family: var(--font-mono); font-size: var(--s--1); font-weight: 400; }
       .tk-sym { color: var(--c-text); letter-spacing: .06em; }
