@@ -517,7 +517,6 @@ async function initTicker() {
   const track = document.getElementById('ticker-track');
   if (!track) return;
 
-  // Pause animation while building
   track.style.animationPlayState = 'paused';
 
   const buildItems = (data) => {
@@ -533,21 +532,17 @@ async function initTicker() {
       `;
       track.appendChild(el);
     });
-    // Resume animation after build
     track.style.animationPlayState = 'running';
   };
 
-  // Show fallback immediately — ticker is never empty
-  buildItems(TICKER_FALLBACK);
-
-  // Fetch from ticker.json in same GitHub repo — no CORS issues
+  // Try ticker.json first — only fall back if it fails
   try {
-    const cacheBust = Math.floor(Date.now() / 300000);
-    const r = await fetch(`/ticker.json?v=${cacheBust}`);
+    const r = await fetch(`/ticker.json?v=${Date.now()}`);
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
     if (data.tape && data.tape.length >= 3) {
       buildItems(data.tape);
+      // Update ASI in hero
       const asi = data.tape.find(t => t.sym === 'NGX ASI');
       if (asi) {
         const el = document.getElementById('asi-value');
@@ -555,23 +550,14 @@ async function initTicker() {
         if (el) el.textContent = asi.price;
         if (chg) { chg.textContent = asi.change; chg.style.color = asi.up ? 'var(--c-pos)' : 'var(--c-neg)'; }
       }
+      return; // Done — don't show fallback
     }
   } catch (e) {
-    // Fallback already showing — try CoinGecko for crypto
-    try {
-      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=ngn,usd');
-      if (r.ok) {
-        const crypto = await r.json();
-        const updated = [...TICKER_FALLBACK];
-        if (crypto.bitcoin?.ngn) {
-          const idx = updated.findIndex(t => t.sym === 'BTC/NGN');
-          const item = { sym: 'BTC/NGN', price: `₦${(crypto.bitcoin.ngn/1_000_000).toFixed(2)}M`, change: '+—', up: true };
-          if (idx >= 0) updated[idx] = item; else updated.push(item);
-        }
-        buildItems(updated);
-      }
-    } catch {}
+    console.warn('ticker.json failed:', e.message);
   }
+
+  // Only reach here if ticker.json failed — show fallback
+  buildItems(TICKER_FALLBACK);
 }
 
 function updateNav(page) {
