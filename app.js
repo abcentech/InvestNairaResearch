@@ -18,14 +18,19 @@
    CONFIG
 ═══════════════════════════════════════════════════════════ */
 
+const DEFAULT_CONFIG = {
+  SUPABASE_URL: '',
+  SUPABASE_ANON: '',
+  GHOST_URL: 'https://research.investnaira.com',
+  GHOST_KEY: '',
+  PAY_PREMIUM: '',
+  PAY_PROFESSIONAL: '',
+  PAY_BUSINESS: 'mailto:research@investnaira.com',
+};
+
 const CONFIG = {
-  SUPABASE_URL:  'https://qdvcrqkiltbtqykxntev.supabase.co',
-  SUPABASE_ANON: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFkdmNycWtpbHRidHF5a3hudGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3OTg5NzQsImV4cCI6MjA4NzM3NDk3NH0.ah5UWtBhTvNGkw2Gmp3RxCdv6yOopgDMNFLOKD0oG08',
-  GHOST_URL:     'https://research.investnaira.com',
-  GHOST_KEY:     'e6f915d91ea8d187cb4e5a0e50',
-  PAY_PREMIUM:      'https://checkout.korapay.com/pay/DqjfX7nSyiQj9yT',
-  PAY_PROFESSIONAL: 'https://checkout.korapay.com/pay/FxXpAqjHzyamBol',
-  PAY_BUSINESS:     'mailto:research@investnaira.com',
+  ...DEFAULT_CONFIG,
+  ...(window.INVESTNAIRA_CONFIG || {}),
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -62,20 +67,49 @@ const REPORTS_FALLBACK = [
 ═══════════════════════════════════════════════════════════ */
 
 // Cache so we don't re-fetch on every navigation
-const cache = { tickers: null, reports: null, stats: null };
+const cache = { tickers: null, reports: null, stats: null, reportDetails: {} };
+
+function hasSupabase() {
+  return Boolean(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON);
+}
+
+function hasGhost() {
+  return Boolean(CONFIG.GHOST_URL && CONFIG.GHOST_KEY);
+}
+
+function supabaseHeaders() {
+  return {
+    apikey: CONFIG.SUPABASE_ANON,
+    Authorization: `Bearer ${CONFIG.SUPABASE_ANON}`,
+  };
+}
+
+function buildReportHref(report) {
+  return report?.isFree && report?.slug ? `#/report/${report.slug}` : (CONFIG.PAY_PREMIUM || '#/subscribe');
+}
+
+function normaliseType(tags = []) {
+  if (tags.includes('currency') || tags.includes('fx')) return 'currency';
+  if (tags.includes('commodity') || tags.includes('commodities')) return 'commodity';
+  if (tags.includes('crypto') || tags.includes('cryptocurrency')) return 'crypto';
+  if (tags.includes('real-estate') || tags.includes('realestate')) return 'realestate';
+  return 'equity';
+}
+
+function formatReportDate(value) {
+  return value ? new Date(value).toLocaleDateString('en-NG', { month: 'short', year: 'numeric' }) : 'Recent';
+}
 
 async function fetchLiveTickers() {
   if (cache.tickers) return cache.tickers;
+  if (!hasSupabase()) return TICKER_FALLBACK;
   try {
     // Featured tickers for the tape
     const tickers = ['GTCO','ZENITHBANK','DANGCEM','MTNN','ACCESSCORP','SEPLAT','AIRTELAFRI','UBA','FBNH','BUACEMENT'];
     const list = tickers.join(',');
     const url = `${CONFIG.SUPABASE_URL}/rest/v1/daily_prices?select=ticker,close,date&ticker=in.(${list})&order=date.desc&limit=20`;
     const res = await fetch(url, {
-      headers: {
-        'apikey': CONFIG.SUPABASE_ANON,
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}`,
-      }
+      headers: supabaseHeaders()
     });
     if (!res.ok) throw new Error('Supabase fetch failed');
     const rows = await res.json();
@@ -87,14 +121,15 @@ async function fetchLiveTickers() {
     }
 
     // Also fetch macro data (USD/NGN, oil)
-    const macroUrl = `${CONFIG.SUPABASE_URL}/rest/v1/macro_data?select=metric,value,date&order=date.desc&limit=20`;
+    const macroUrl = `${CONFIG.SUPABASE_URL}/rest/v1/macro_data?select=metric,indicator,value,date&order=date.desc&limit=20`;
     const macroRes = await fetch(macroUrl, {
-      headers: { 'apikey': CONFIG.SUPABASE_ANON, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}` }
+      headers: supabaseHeaders()
     });
     const macroRows = macroRes.ok ? await macroRes.json() : [];
     const macro = {};
     for (const row of macroRows) {
-      if (!macro[row.metric]) macro[row.metric] = row;
+      const key = row.metric || row.indicator;
+      if (key && !macro[key]) macro[key] = row;
     }
 
     // Build ticker tape array
@@ -142,6 +177,7 @@ async function fetchLiveReports() {
   
   // Try Ghost first
   try {
+    if (!hasGhost()) throw new Error('Ghost config missing');
     const url = `${CONFIG.GHOST_URL}/ghost/api/content/posts/?key=${CONFIG.GHOST_KEY}&limit=20&fields=id,title,slug,published_at,tags,url&include=tags`;
     const res = await fetch(url);
     if (res.ok) {
@@ -150,19 +186,17 @@ async function fetchLiveReports() {
       if (posts.length > 0) {
         cache.reports = posts.map(post => {
           const tags = (post.tags || []).map(t => t.slug);
-          let type = 'equity';
-          if (tags.includes('currency') || tags.includes('fx')) type = 'currency';
-          else if (tags.includes('commodity') || tags.includes('commodities')) type = 'commodity';
-          else if (tags.includes('crypto') || tags.includes('cryptocurrency')) type = 'crypto';
-          else if (tags.includes('real-estate') || tags.includes('realestate')) type = 'realestate';
+          const type = normaliseType(tags);
           return {
             id:    post.id,
             type,
             badge: type.charAt(0).toUpperCase() + type.slice(1),
             title: post.title,
-            date:  post.published_at ? new Date(post.published_at).toLocaleDateString('en-NG', { month: 'short', year: 'numeric' }) : 'Recent',
-            plan:  tags.includes('free') ? 'starter' : 'pro',
-            url:   `${CONFIG.GHOST_URL}/${post.slug}`,
+            date:  formatReportDate(post.published_at),
+            plan:  'starter',
+            isFree: true,
+            slug: post.slug,
+            url: `#/report/${post.slug}`,
           };
         });
         return cache.reports;
@@ -174,12 +208,10 @@ async function fetchLiveReports() {
 
   // Fallback to Supabase reports table
   try {
+    if (!hasSupabase()) throw new Error('Supabase config missing');
     const url = `${CONFIG.SUPABASE_URL}/rest/v1/reports?select=*&order=published_at.desc&limit=20`;
     const res = await fetch(url, {
-      headers: {
-        'apikey': CONFIG.SUPABASE_ANON,
-        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}`,
-      }
+      headers: supabaseHeaders()
     });
     if (!res.ok) throw new Error('fetch failed');
     const rows = await res.json();
@@ -188,9 +220,11 @@ async function fetchLiveReports() {
       type:         r.type || 'equity',
       badge:        (r.type || 'equity').charAt(0).toUpperCase() + (r.type || 'equity').slice(1),
       title:        r.title,
-      date:         new Date(r.published_at).toLocaleDateString('en-NG', { month: 'short', year: 'numeric' }),
+      date:         formatReportDate(r.published_at),
       plan:         r.is_free ? 'starter' : 'pro',
-      url:          r.is_free ? `#/report/${r.slug}` : CONFIG.PAY_PREMIUM,
+      isFree:       Boolean(r.is_free),
+      slug:         r.slug,
+      url:          r.is_free ? `#/report/${r.slug}` : (CONFIG.PAY_PREMIUM || '#/subscribe'),
       ticker:       r.ticker,
       rating:       r.rating,
       price_target: r.price_target,
@@ -203,14 +237,81 @@ async function fetchLiveReports() {
   }
 }
 
+async function fetchReportDetail(slug) {
+  if (cache.reportDetails[slug]) return cache.reportDetails[slug];
+
+  if (hasGhost()) {
+    try {
+      const url = `${CONFIG.GHOST_URL}/ghost/api/content/posts/slug/${encodeURIComponent(slug)}/?key=${CONFIG.GHOST_KEY}&include=tags,authors`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        const post = (data.posts || [])[0];
+        if (post) {
+          const tags = (post.tags || []).map(t => t.slug);
+          const detail = {
+            slug: post.slug,
+            title: post.title,
+            publishedAt: post.published_at,
+            date: formatReportDate(post.published_at),
+            excerpt: post.custom_excerpt || post.excerpt || '',
+            html: post.html || '',
+            featureImage: post.feature_image || '',
+            type: normaliseType(tags),
+            tags: post.tags || [],
+            isFree: true,
+            canonicalUrl: `${CONFIG.GHOST_URL}/${post.slug}/`,
+          };
+          cache.reportDetails[slug] = detail;
+          return detail;
+        }
+      }
+    } catch (e) {
+      console.warn('Ghost detail fetch failed:', e.message);
+    }
+  }
+
+  if (hasSupabase()) {
+    try {
+      const url = `${CONFIG.SUPABASE_URL}/rest/v1/reports?slug=eq.${encodeURIComponent(slug)}&select=*`;
+      const res = await fetch(url, { headers: supabaseHeaders() });
+      if (res.ok) {
+        const rows = await res.json();
+        const row = rows[0];
+        if (row) {
+          const detail = {
+            slug: row.slug,
+            title: row.title,
+            publishedAt: row.published_at,
+            date: formatReportDate(row.published_at),
+            excerpt: row.excerpt || '',
+            html: '',
+            featureImage: '',
+            type: row.type || 'equity',
+            tags: (row.tags || []).map(name => ({ name })),
+            isFree: Boolean(row.is_free),
+            canonicalUrl: '',
+            locked: !row.is_free,
+          };
+          cache.reportDetails[slug] = detail;
+          return detail;
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase detail fetch failed:', e.message);
+    }
+  }
+
+  return null;
+}
+
 async function fetchStats() {
   if (cache.stats) return cache.stats;
   try {
+    if (!hasSupabase()) throw new Error('Supabase config missing');
     // Count real research ratings in Supabase
     const url = `${CONFIG.SUPABASE_URL}/rest/v1/research_ratings?select=id&limit=1000`;
-    const res = await fetch(url, {
-      headers: { 'apikey': CONFIG.SUPABASE_ANON, 'Authorization': `Bearer ${CONFIG.SUPABASE_ANON}` }
-    });
+    const res = await fetch(url, { headers: supabaseHeaders() });
     const rows = res.ok ? await res.json() : [];
     cache.stats = { reportCount: rows.length || 32 };
     return cache.stats;
@@ -898,6 +999,89 @@ async function renderReports() {
   initReportFilter();
 }
 
+async function renderReportDetail({ slug }) {
+  updateNav('reports');
+  const app = document.getElementById('app');
+
+  app.innerHTML = `
+    <div class="container sp">
+      <div class="page-hero reveal">
+        <p class="page-eye">Research report</p>
+        <h1 class="page-h1">Loading report...</h1>
+      </div>
+    </div>
+  `;
+
+  const report = await fetchReportDetail(slug);
+
+  if (!report) {
+    app.innerHTML = `
+      <div class="container sp">
+        <div class="page-hero reveal">
+          <p class="page-eye"><a href="#/reports" class="btn-ghost" style="font-size:var(--s--1);">← Reports</a></p>
+          <h1 class="page-h1">Report not found.</h1>
+          <p class="page-sub">The report may have moved, may be premium-only, or may not be publicly available yet.</p>
+        </div>
+        <a href="${CONFIG.PAY_PREMIUM || '#/subscribe'}" class="btn-primary"><span>Browse Premium Access</span><span class="arr" aria-hidden="true">→</span></a>
+      </div>
+    `;
+    initBehaviours();
+    return;
+  }
+
+  const tagMarkup = (report.tags || [])
+    .map(tag => {
+      const label = tag.name || tag;
+      return `<span class="hero-tag" style="font-size:var(--s--1);">${label}</span>`;
+    })
+    .join('');
+
+  const bodyMarkup = report.html
+    ? `<div style="display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:var(--sp-2xl);align-items:start;">
+         <article style="min-width:0;">
+           ${report.featureImage ? `<img src="${report.featureImage}" alt="${report.title}" style="width:100%;border:1px solid var(--c-border);margin-block-end:var(--sp-xl);">` : ''}
+           <div style="font-size:var(--s-0);line-height:1.85;color:var(--c-text);" class="report-body">${report.html}</div>
+         </article>
+         <aside style="background:var(--c-surface);border:1px solid var(--c-border);padding:var(--sp-xl);position:sticky;top:110px;">
+           <p style="font-family:var(--font-mono);font-size:var(--s--1);letter-spacing:.08em;text-transform:uppercase;color:var(--c-accent);margin-block-end:var(--sp-m);">Access</p>
+           <p style="font-size:var(--s-0);color:var(--c-muted);margin-block-end:var(--sp-l);">This report is publicly available on InvestNaira and synced from Ghost.</p>
+           ${report.canonicalUrl ? `<a href="${report.canonicalUrl}" target="_blank" rel="noopener" class="btn-ghost">Open canonical Ghost post →</a>` : ''}
+         </aside>
+       </div>`
+    : `<div style="max-width:760px;">
+         <div style="background:var(--c-surface);border:1px solid var(--c-border);padding:var(--sp-xl);margin-block-end:var(--sp-xl);">
+           <p style="font-family:var(--font-mono);font-size:var(--s--1);letter-spacing:.08em;text-transform:uppercase;color:var(--c-accent);margin-block-end:var(--sp-m);">
+             ${report.locked ? 'Premium report' : 'Report summary'}
+           </p>
+           <p style="font-size:var(--s-0);line-height:1.8;color:var(--c-muted);">${report.excerpt || 'This report exists in the archive, but the full article body is not available from the current data source.'}</p>
+         </div>
+         <a href="${report.locked ? (CONFIG.PAY_PREMIUM || '#/subscribe') : '#/reports'}" class="btn-primary">
+           <span>${report.locked ? 'Unlock Premium Access' : 'Back to Reports'}</span>
+           <span class="arr" aria-hidden="true">→</span>
+         </a>
+       </div>`;
+
+  app.innerHTML = `
+    <div class="container sp">
+      <div class="page-hero reveal">
+        <p class="page-eye"><a href="#/reports" class="btn-ghost" style="font-size:var(--s--1);">← Reports</a></p>
+        <h1 class="page-h1">${report.title}</h1>
+        <p class="page-sub">${report.excerpt || 'Independent Nigerian market research from InvestNaira.'}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:var(--sp-s);align-items:center;margin-block-start:var(--sp-l);">
+          ${typeBadge(report.type)}
+          <span class="report-date">${report.date}</span>
+        </div>
+        ${tagMarkup ? `<div class="hero-tags" style="margin-block-start:var(--sp-l);align-items:flex-start;">${tagMarkup}</div>` : ''}
+      </div>
+      <div class="reveal">
+        ${bodyMarkup}
+      </div>
+    </div>
+  `;
+
+  initBehaviours();
+}
+
 /* ═══════════════════════════════════════════════════════════
    PAGE: SUBSCRIBE — Korapay payments
 ═══════════════════════════════════════════════════════════ */
@@ -1252,6 +1436,7 @@ function initHamburger() {
     .on('/research',       renderResearch)
     .on('/research/:slug', renderCategory)
     .on('/reports',        renderReports)
+    .on('/report/:slug',   renderReportDetail)
     .on('/subscribe',      renderSubscribe)
     .on('/about',          renderAbout)
     .on('/faq',            renderFAQ);
