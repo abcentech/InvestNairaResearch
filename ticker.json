@@ -1,22 +1,22 @@
 {
-  "updated": "2026-04-13T15:21:54.179235",
+  "updated": "2026-04-15T09:21:00.807637",
   "tape": [
     {
       "sym": "USD/NGN",
-      "price": "\u20a61,362",
+      "price": "\u20a61,352",
       "change": "+\u2014",
       "up": true
     },
     {
       "sym": "GTCO",
-      "price": "\u20a6123.90",
-      "change": "+9.99%",
+      "price": "\u20a6134.00",
+      "change": "+8.15%",
       "up": true
     },
     {
       "sym": "ZENITHBANK",
-      "price": "\u20a6103.00",
-      "change": "+2.95%",
+      "price": "\u20a6112.60",
+      "change": "+9.32%",
       "up": true
     },
     {
@@ -27,20 +27,20 @@
     },
     {
       "sym": "MTNN",
-      "price": "\u20a6760.00",
-      "change": "+0.00%",
-      "up": true
+      "price": "\u20a6745.00",
+      "change": "-1.97%",
+      "up": false
     },
     {
       "sym": "ACCESSCORP",
       "price": "\u20a626.00",
-      "change": "+0.58%",
+      "change": "+0.00%",
       "up": true
     },
     {
       "sym": "SEPLAT",
-      "price": "\u20a69,099.90",
-      "change": "+0.00%",
+      "price": "\u20a69,550.00",
+      "change": "+4.95%",
       "up": true
     },
     {
@@ -51,9 +51,9 @@
     },
     {
       "sym": "UBA",
-      "price": "\u20a646.15",
-      "change": "-0.54%",
-      "up": false
+      "price": "\u20a646.60",
+      "change": "+0.98%",
+      "up": true
     },
     {
       "sym": "BUACEMENT",
@@ -63,9 +63,9 @@
     },
     {
       "sym": "NESTLE",
-      "price": "\u20a63,055.50",
-      "change": "-10.00%",
-      "up": false
+      "price": "\u20a63,249.90",
+      "change": "+6.36%",
+      "up": true
     },
     {
       "sym": "PRESCO",
@@ -81,19 +81,19 @@
     },
     {
       "sym": "STANBIC",
-      "price": "\u20a6133.10",
-      "change": "+0.00%",
+      "price": "\u20a6147.00",
+      "change": "+10.44%",
       "up": true
     },
     {
       "sym": "NB",
-      "price": "\u20a672.00",
-      "change": "+1.41%",
+      "price": "\u20a673.90",
+      "change": "+2.64%",
       "up": true
     },
     {
       "sym": "BTC/NGN",
-      "price": "\u20a697.30M",
+      "price": "\u20a699.79M",
       "change": "+\u2014",
       "up": true
     }
