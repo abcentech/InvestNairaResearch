@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /terminal
+Disallow: /gate
+
+Sitemap: https://investnaira.com/sitemap.xml

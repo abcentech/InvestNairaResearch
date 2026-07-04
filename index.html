@@ -1,528 +1,222 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <!--
-    InvestNaira — Full SPA
-    Stack: Vanilla JS hash-router · no build step · deploys anywhere
-    Design: Lagos Financial Intelligence (see app.js for design token doc)
-  -->
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="InvestNaira — Independent research on Nigerian equities, real estate, commodities, cryptocurrency and currency markets." />
-  <meta name="theme-color" content="#061A0E" />
-  <title>InvestNaira Research</title>
+<!DOCTYPE html><html lang="en"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Bloomberg-grade intelligence for Africa's largest economy. Live NGX equities, audited fundamentals, real yields vs inflation, scored news and AI decision dossiers — built on official sources only."><link rel="canonical" href="https://investnaira.com/"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="theme-color" content="#001a14"><title>TREASURE — The Market Intelligence Terminal for Nigeria | InvestNaira</title><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:url" content="https://investnaira.com/"><meta property="og:title" content="TREASURE — The Market Intelligence Terminal for Nigeria | InvestNaira"><meta property="og:description" content="Bloomberg-grade intelligence for Africa's largest economy. Live NGX equities, audited fundamentals, real yields vs inflation, scored news and AI decision dossiers — built on official sources only."><meta property="og:site_name" content="InvestNaira — TREASURE Terminal"><meta property="og:image" content="https://investnaira.com/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="TREASURE — The Market Intelligence Terminal for Nigeria | InvestNaira"><meta name="twitter:description" content="Bloomberg-grade intelligence for Africa's largest economy. Live NGX equities, audited fundamentals, real yields vs inflation, scored news and AI decision dossiers — built on official sources only."><meta name="twitter:image" content="https://investnaira.com/og-image.png"><!-- Structured data --><script type="application/ld+json">[{"@context":"https://schema.org","@type":"Organization","name":"InvestNaira Research","url":"https://investnaira.com","logo":"https://investnaira.com/favicon.svg","description":"Nigeria-first market data and research: NGX equities, FGN bonds, FX and macro intelligence.","sameAs":["https://t.me/InvestNairaAlert"]},{"@context":"https://schema.org","@type":"WebSite","name":"InvestNaira — TREASURE Terminal","url":"https://investnaira.com","potentialAction":{"@type":"SearchAction","target":"https://investnaira.com/archive?q={search_term_string}","query-input":"required name=search_term_string"}},{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is TREASURE?","acceptedAnswer":{"@type":"Answer","text":"TREASURE is a professional market intelligence terminal for Nigerian markets: live NGX equities, FGN bonds and T-bills, FX, macro data, scored news, a factor screener and AI decision support — built entirely on official and exchange sources."}},{"@type":"Question","name":"Is TREASURE a Bloomberg alternative for Nigeria?","acceptedAnswer":{"@type":"Answer","text":"For Nigerian coverage, yes — it is built to answer the same questions a Bloomberg or Refinitiv terminal answers (valuation vs peers, real yields, breaking market news, audited fundamentals) at a fraction of the cost, with deeper Nigeria-specific data such as parallel-market FX and NGX filings."}},{"@type":"Question","name":"Where does the data come from?","acceptedAnswer":{"@type":"Answer","text":"Official sources only: the Nigerian Exchange (NGX) daily official lists and filings, the Central Bank of Nigeria, the Debt Management Office, the National Bureau of Statistics, and audited company financial statements. A number that cannot be sourced is shown blank — never estimated."}},{"@type":"Question","name":"What are Decision Dossiers?","acceptedAnswer":{"@type":"Answer","text":"One auditable answer per security or asset class: six pillars — Valuation, Quality, Momentum, Income, News and vs-Risk-Free — each scored only from real sourced numbers with the evidence printed under every score, plus what the riskless alternative currently pays."}},{"@type":"Question","name":"Can I get alerts on Telegram?","acceptedAnswer":{"@type":"Answer","text":"Yes. Breaking market-moving news with direction tags, a morning brief, midday and close market pulses, on-demand decision dossiers, plain-English questions to the AI analyst, and a personal radar that watches the names you actually hold."}},{"@type":"Question","name":"Who is TREASURE for?","acceptedAnswer":{"@type":"Answer","text":"Global investors and funds allocating to Nigeria and frontier Africa, local asset managers and analysts, the Nigerian diaspora managing money home, and serious retail investors who want institutional-grade data instead of rumours."}}]},{"@context":"https://schema.org","@type":"SoftwareApplication","name":"TREASURE Terminal","applicationCategory":"FinanceApplication","operatingSystem":"Web","url":"https://investnaira.com/terminal","description":"Market intelligence terminal for Nigerian markets: live NGX data, audited fundamentals, sovereign yield curve, factor screener, scored news and AI decision dossiers.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"Free tier — gated beta"}}]</script><!-- Editorial typography --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap"><link rel="stylesheet" href="/_astro/global.DReWnjFx.css"><style>.strip-track[data-astro-cid-xx6rtshs]{animation:strip-scroll 40s linear infinite}.strip-viewport[data-astro-cid-xx6rtshs]:hover .strip-track[data-astro-cid-xx6rtshs]{animation-play-state:paused}@keyframes strip-scroll{0%{transform:translate(0)}to{transform:translate(-50%)}}
+.ticker-inner[data-astro-cid-daomz7ve]{animation:ticker-scroll 40s linear infinite}@keyframes ticker-scroll{0%{transform:translate(0)}to{transform:translate(-50%)}}
+</style></head> <body class="bg-[#001a14] text-[#e2e8f0] antialiased flex flex-col min-h-screen"> <div class="w-full bg-[#032e25] border-b border-[#0f4034] h-10 flex items-center overflow-hidden text-xs tracking-wider uppercase relative" data-astro-cid-daomz7ve> <div class="px-5 text-[#8899aa] font-bold border-r border-[#0f4034] shrink-0 z-10 bg-[#032e25] h-full flex items-center" data-astro-cid-daomz7ve>
+NSE
+</div> <div class="flex overflow-hidden w-full h-full items-center" data-astro-cid-daomz7ve> <div class="ticker-inner flex gap-12 px-8 whitespace-nowrap" data-astro-cid-daomz7ve> <span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>USD/NGN</span> <span class="text-[#ff6b6b]" data-astro-cid-daomz7ve> ▼ ₦1,370.989 </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>NGX ASI</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ ₦7,615.48 </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>ABBEYBANK</span> <span class="text-[#ff6b6b]" data-astro-cid-daomz7ve> ▼ 6.92% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>ABCTRANS</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>ACADEMY</span> <span class="text-[#ff6b6b]" data-astro-cid-daomz7ve> ▼ 4.48% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>ACCESSCORP</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>AFRINSURE</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>AFRIPRUD</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>AFROMEDIA</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>AIICO</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span>  <span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>USD/NGN</span> <span class="text-[#ff6b6b]" data-astro-cid-daomz7ve> ▼ ₦1,370.989 </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>NGX ASI</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ ₦7,615.48 </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>ABBEYBANK</span> <span class="text-[#ff6b6b]" data-astro-cid-daomz7ve> ▼ 6.92% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>ABCTRANS</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>ACADEMY</span> <span class="text-[#ff6b6b]" data-astro-cid-daomz7ve> ▼ 4.48% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>ACCESSCORP</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>AFRINSURE</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>AFRIPRUD</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>AFROMEDIA</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span><span class="flex items-center gap-1.5" data-astro-cid-daomz7ve> <span class="text-[#e2e8f0] font-semibold" data-astro-cid-daomz7ve>AIICO</span> <span class="text-[#00d4aa]" data-astro-cid-daomz7ve> ▲ 0.00% </span> </span> </div> </div> </div> <!-- Sticky Header --> <header class="w-full border-b border-[#0f4034] py-4 px-6 lg:px-16 flex justify-between items-center sticky top-0 bg-[#001a14]/95 backdrop-blur-md z-40"> <div class="flex items-center gap-6"> <a href="/" class="text-xl font-['Playfair_Display',serif] font-bold tracking-tight text-white">
+Invest<span class="text-[#f59e0b] italic">Naira</span> </a> <nav class="hidden md:flex gap-7 text-sm font-medium"> <a href="/terminal" class="text-[#00d4aa] hover:text-white transition-colors font-semibold">Terminal</a> <a href="/archive" class="text-[#8899aa] hover:text-[#e2e8f0] transition-colors">Research</a> <a href="/macro" class="text-[#8899aa] hover:text-[#e2e8f0] transition-colors">Macro</a> <a href="/sectors" class="text-[#8899aa] hover:text-[#e2e8f0] transition-colors">Sectors</a> <a href="/blog" class="text-[#8899aa] hover:text-[#e2e8f0] transition-colors">Blog</a> </nav> <!-- For standard layouts: hidden initially, injected next to auth links if logged in --><button id="betaLogoutBtn" class="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors hidden absolute top-4 right-20 z-50 bg-[#032e25] px-3 py-1.5 rounded border border-[#0f4034]">
+Beta Logout
+</button> <script type="module">const e=document.getElementById("betaLogoutBtn");e&&document.cookie.includes("beta_session=")&&(e.classList.remove("hidden"),e.addEventListener("click",async()=>{try{await fetch("/api/beta/logout",{method:"POST"}),window.location.href="/gate"}catch(t){console.error("Logout failed",t)}}));</script> </div> <div class="flex items-center gap-4"> <a href="/gate" class="text-sm font-semibold text-[#8899aa] hover:text-white transition-colors hidden md:block">Sign In</a> <a href="/terminal" class="text-sm font-bold tracking-wide text-[#001a14] bg-[#f59e0b] hover:bg-[#d97706] px-5 py-2 rounded transition-colors">
+Launch Terminal
+</a> </div> </header> <main class="flex-grow">  <div id="breaking-strip" class="hidden bg-[#1a0508] border-y border-[#ef4444]/40 overflow-hidden" data-astro-cid-xx6rtshs> <div class="flex items-center" data-astro-cid-xx6rtshs> <div class="shrink-0 flex items-center gap-2 px-4 py-2 bg-[#ef4444] text-white" data-astro-cid-xx6rtshs> <span class="relative flex h-2 w-2" data-astro-cid-xx6rtshs> <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" data-astro-cid-xx6rtshs></span> <span class="relative inline-flex rounded-full h-2 w-2 bg-white" data-astro-cid-xx6rtshs></span> </span> <span class="text-[10px] font-bold uppercase tracking-widest whitespace-nowrap" data-astro-cid-xx6rtshs>Breaking</span> </div> <div class="strip-viewport flex-1 overflow-hidden py-2 pl-4" data-astro-cid-xx6rtshs> <div id="breaking-strip-track" class="strip-track flex gap-10 whitespace-nowrap will-change-transform" data-astro-cid-xx6rtshs></div> </div> </div> </div>  <script type="module">const a=document.getElementById("breaking-strip"),o=document.getElementById("breaking-strip-track");function l(n){const t=Math.max(0,Math.floor((Date.now()-n)/1e3));return t<3600?`${Math.max(1,Math.floor(t/60))}m ago`:t<86400?`${Math.floor(t/3600)}h ago`:`${Math.floor(t/86400)}d ago`}async function c(){if(!(!a||!o))try{const t=await fetch("https://terminal.investnaira.com/api/news/breaking");if(!t.ok)return;const r=await t.json(),s=(Array.isArray(r?.items)?r.items:[]).filter(e=>e&&e.headline&&Date.now()-e.ts<24*36e5).slice(0,8);if(!s.length){a.classList.add("hidden");return}const i=s.map(e=>`<a href="${e.sources?.[0]?.url??"/terminal"}" target="_blank" rel="noreferrer" class="inline-flex items-center gap-2 text-[12px] text-slate-100 hover:text-[#f59e0b] transition-colors"><span class="text-[#ef4444] font-bold">●</span><span>${String(e.headline).replace(/</g,"&lt;")}</span><span class="text-[#8899aa] text-[10px]">${l(e.ts)}</span></a>`).join("");o.innerHTML=i+i,a.classList.remove("hidden")}catch{}}c();setInterval(c,6e4);</script> <div class="max-w-7xl mx-auto px-6 lg:px-16"> <!-- Hero --> <section class="py-20 lg:py-28 border-b border-[#0f4034]"> <div class="max-w-3xl"> <div class="inline-block px-3 py-1 bg-[#1a3328] text-[#00d4aa] rounded-sm text-[10px] font-bold uppercase tracking-widest mb-8 border border-[#00d4aa]/20">
+TREASURE Terminal · Nigeria's Market Intelligence Platform
+</div> <h1 class="text-5xl lg:text-6xl xl:text-7xl font-['Playfair_Display',serif] font-bold text-white leading-[1.05] tracking-tight mb-8">
+Bloomberg-grade intelligence for <span class="text-[#f59e0b] italic">Africa's largest economy</span> </h1> <p class="text-lg text-[#8899aa] leading-relaxed max-w-xl mb-10">
+Live NGX equities, audited fundamentals, sovereign yields deflated by real inflation,
+          scored market news and AI decision dossiers — every number traceable to an official source,
+          at a fraction of the cost of a legacy terminal.
+</p> <div class="flex flex-wrap gap-4"> <a href="/terminal" class="bg-[#f59e0b] hover:bg-[#d97706] text-[#001a14] font-bold px-7 py-3.5 rounded text-sm tracking-wide transition-colors">
+Launch the Terminal
+</a> <a href="/subscribe" class="border border-[#0f4034] hover:bg-[#0f4034] text-white font-bold px-7 py-3.5 rounded text-sm tracking-wide transition-colors">
+Request Beta Access
+</a> <a href="https://t.me/InvestNairaAlert" rel="noopener" class="border border-[#0f4034] hover:bg-[#0f4034] text-[#00d4aa] font-bold px-7 py-3.5 rounded text-sm tracking-wide transition-colors">
+Telegram Signals →
+</a> </div> <div class="flex flex-wrap gap-x-8 gap-y-2 mt-10 text-xs text-[#8899aa] uppercase tracking-widest font-semibold"> <span>150+ NGX equities</span> <span>10yr audited financials</span> <span>CBN · DMO · NBS · NGX sources</span> <span>40+ terminal functions</span> </div> </div> </section> <!-- Live proof --> <section class="py-16 border-b border-[#0f4034]"> <div class="flex items-center justify-between mb-10"> <h2 class="text-3xl font-['Playfair_Display',serif] font-bold text-white">The market, live — right now</h2> <div class="hidden md:flex gap-4"> <span class="text-[10px] font-bold uppercase tracking-widest text-[#00d4aa]">● Live Data</span> <span class="text-[10px] font-bold uppercase tracking-widest text-[#f59e0b]">● Scored Signals</span> </div> </div> <div class="grid grid-cols-1 lg:grid-cols-12 gap-8"> <div class="lg:col-span-5"><div class="bg-[#001a14]/50 backdrop-blur-md border border-[#0f4034] rounded-xl overflow-hidden shadow-2xl"> <div class="p-6 border-b border-[#0f4034] flex items-center justify-between"> <div> <h3 class="text-white font-['Playfair_Display',serif] font-bold text-xl mb-1">Market-Moving News</h3> <p class="text-[#8899aa] text-xs">Real-time intelligence sweep</p> </div> <div class="px-2 py-1 bg-[#1a3328] border border-[#00d4aa]/30 rounded text-[9px] font-bold text-[#00d4aa] uppercase tracking-widest">
+Live Intelligence
+</div> </div> <div class="divide-y divide-[#0f4034]"> <a href="https://businessday.ng/insurance/article/sovereign-trust-insurance-set-for-n5bn-rights-issue/" target="_blank" class="block p-5 hover:bg-[#0f4034]/30 transition-all group"> <div class="flex gap-4"> <div class="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-[#8899aa]"></div> <div class="flex-1"> <div class="flex items-center gap-2 mb-2"> <span class="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider">BusinessDay Nigeria</span> <span class="text-[9px] px-1.5 py-0.5 bg-[#ef4444]/20 text-[#ef4444] font-bold rounded uppercase">High Priority</span> </div> <h4 class="text-sm font-medium text-white group-hover:text-[#f59e0b] transition-colors leading-snug mb-2"> Sovereign Trust Insurance set for N5bn rights issue </h4> <div class="text-[10px] text-[#8899aa] uppercase tracking-tighter"> 10:12 · neutral Signal
+</div> </div> </div> </a><a href="https://nairametrics.com/2026/05/04/naira-bounces-from-april-lows-trades-at-n1858-1-against-british-pound/" target="_blank" class="block p-5 hover:bg-[#0f4034]/30 transition-all group"> <div class="flex gap-4"> <div class="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-[#00d4aa]"></div> <div class="flex-1"> <div class="flex items-center gap-2 mb-2"> <span class="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider">Nairametrics</span>  </div> <h4 class="text-sm font-medium text-white group-hover:text-[#f59e0b] transition-colors leading-snug mb-2"> Naira bounces from April lows, trades at N1,858/£1 against British Pound </h4> <div class="text-[10px] text-[#8899aa] uppercase tracking-tighter"> 09:12 · positive Signal
+</div> </div> </div> </a><a href="https://nairametrics.com/2026/05/04/naira-bounces-from-april-lows-trades-at-n1858-1-against-british-pound/" target="_blank" class="block p-5 hover:bg-[#0f4034]/30 transition-all group"> <div class="flex gap-4"> <div class="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-[#00d4aa]"></div> <div class="flex-1"> <div class="flex items-center gap-2 mb-2"> <span class="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider">Nairametrics</span>  </div> <h4 class="text-sm font-medium text-white group-hover:text-[#f59e0b] transition-colors leading-snug mb-2"> Naira bounces from April lows, trades at N1,858/£1 against British Pound </h4> <div class="text-[10px] text-[#8899aa] uppercase tracking-tighter"> 09:12 · positive Signal
+</div> </div> </div> </a><a href="https://nairametrics.com/2026/05/04/naira-bounces-from-april-lows-trades-at-n1858-1-against-british-pound/" target="_blank" class="block p-5 hover:bg-[#0f4034]/30 transition-all group"> <div class="flex gap-4"> <div class="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-[#00d4aa]"></div> <div class="flex-1"> <div class="flex items-center gap-2 mb-2"> <span class="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider">Nairametrics</span>  </div> <h4 class="text-sm font-medium text-white group-hover:text-[#f59e0b] transition-colors leading-snug mb-2"> Naira bounces from April lows, trades at N1,858/£1 against British Pound </h4> <div class="text-[10px] text-[#8899aa] uppercase tracking-tighter"> 09:12 · positive Signal
+</div> </div> </div> </a><a href="https://nairametrics.com/2026/05/04/africa-prudential-unveils-sabivest-app-to-simplify-share-management-for-nigerian-investors/" target="_blank" class="block p-5 hover:bg-[#0f4034]/30 transition-all group"> <div class="flex gap-4"> <div class="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-[#8899aa]"></div> <div class="flex-1"> <div class="flex items-center gap-2 mb-2"> <span class="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider">Nairametrics</span>  </div> <h4 class="text-sm font-medium text-white group-hover:text-[#f59e0b] transition-colors leading-snug mb-2"> Africa Prudential unveils Sabivest app to simplify share management for Nigerian investors </h4> <div class="text-[10px] text-[#8899aa] uppercase tracking-tighter"> 09:11 · neutral Signal
+</div> </div> </div> </a><a href="https://nairametrics.com/2026/05/04/africa-prudential-unveils-sabivest-app-to-simplify-share-management-for-nigerian-investors/" target="_blank" class="block p-5 hover:bg-[#0f4034]/30 transition-all group"> <div class="flex gap-4"> <div class="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-[#8899aa]"></div> <div class="flex-1"> <div class="flex items-center gap-2 mb-2"> <span class="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider">Nairametrics</span>  </div> <h4 class="text-sm font-medium text-white group-hover:text-[#f59e0b] transition-colors leading-snug mb-2"> Africa Prudential unveils Sabivest app to simplify share management for Nigerian investors </h4> <div class="text-[10px] text-[#8899aa] uppercase tracking-tighter"> 09:11 · neutral Signal
+</div> </div> </div> </a><a href="https://nairametrics.com/2026/05/04/africa-prudential-unveils-sabivest-app-to-simplify-share-management-for-nigerian-investors/" target="_blank" class="block p-5 hover:bg-[#0f4034]/30 transition-all group"> <div class="flex gap-4"> <div class="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-[#8899aa]"></div> <div class="flex-1"> <div class="flex items-center gap-2 mb-2"> <span class="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider">Nairametrics</span>  </div> <h4 class="text-sm font-medium text-white group-hover:text-[#f59e0b] transition-colors leading-snug mb-2"> Africa Prudential unveils Sabivest app to simplify share management for Nigerian investors </h4> <div class="text-[10px] text-[#8899aa] uppercase tracking-tighter"> 09:11 · neutral Signal
+</div> </div> </div> </a><a href="https://nairametrics.com/2026/05/04/trusted-real-estate-company-the-mshel-homes-difference/" target="_blank" class="block p-5 hover:bg-[#0f4034]/30 transition-all group"> <div class="flex gap-4"> <div class="mt-1.5 w-2 h-2 rounded-full shrink-0 bg-[#00d4aa]"></div> <div class="flex-1"> <div class="flex items-center gap-2 mb-2"> <span class="text-[10px] font-bold text-[#f59e0b] uppercase tracking-wider">Nairametrics</span>  </div> <h4 class="text-sm font-medium text-white group-hover:text-[#f59e0b] transition-colors leading-snug mb-2"> Trusted Real Estate Company: The Mshel Homes Difference. </h4> <div class="text-[10px] text-[#8899aa] uppercase tracking-tighter"> 09:00 · positive Signal
+</div> </div> </div> </a> </div> <div class="p-4 bg-[#001a14]/80 border-t border-[#0f4034] text-center"> <a href="/intelligence" class="text-xs font-bold uppercase tracking-widest text-[#f59e0b] hover:text-white transition-colors">
+Open Intelligence Terminal &rarr;
+</a> </div> </div></div> <div class="lg:col-span-7"><div class="bg-[#032e25]/50 backdrop-blur-md border border-[#0f4034] rounded-xl overflow-hidden shadow-2xl relative"> <!-- Subtle gold glow --> <div class="absolute -top-24 -right-24 w-48 h-48 bg-[#f59e0b]/10 rounded-full blur-3xl pointer-events-none"></div> <div class="p-6 border-b border-[#0f4034] flex items-center justify-between"> <div> <h3 class="text-white font-['Playfair_Display',serif] font-bold text-xl mb-1">Market Intelligence</h3> <p class="text-[#8899aa] text-xs">Coverage as of 2 July 2026</p> </div> <div class="flex items-center gap-2"> <span class="w-2 h-2 rounded-full bg-[#00d4aa] animate-pulse"></span> <span class="text-[10px] font-bold uppercase tracking-widest text-[#00d4aa]">Intelligence Engine Live</span> </div> </div> <!-- Macro Strip --> <div class="grid grid-cols-2 md:grid-cols-4 border-b border-[#0f4034] bg-[#001a14]/40"> <div class="p-4 border-r border-[#0f4034]"> <div class="text-[10px] uppercase tracking-widest text-[#8899aa] mb-1">USD/NGN Official</div> <div class="text-lg font-mono text-white">₦1,370.989</div> </div> <div class="p-4 border-r border-[#0f4034]"> <div class="text-[10px] uppercase tracking-widest text-[#8899aa] mb-1">Parallel Market</div> <div class="text-lg font-mono text-white">₦1,568</div> </div> <div class="p-4 border-r border-[#0f4034]"> <div class="text-[10px] uppercase tracking-widest text-[#8899aa] mb-1">NGX Average</div> <div class="text-lg font-mono text-white">₦7,615.48</div> </div> <div class="p-4"> <div class="text-[10px] uppercase tracking-widest text-[#8899aa] mb-1">Brent Crude</div> <div class="text-lg font-mono text-[#00d4aa]">$72.39</div> </div> </div> <div class="overflow-x-auto"> <table class="w-full text-left border-collapse"> <thead> <tr class="bg-[#001a14]/80 text-[#8899aa] text-xs uppercase tracking-wider"> <th class="py-4 px-6 font-semibold">Ticker</th> <th class="py-4 px-6 font-semibold hidden md:table-cell">Company</th> <th class="py-4 px-6 font-semibold text-right">Price (₦)</th> <th class="py-4 px-6 font-semibold text-right">Change</th> </tr> </thead> <tbody class="divide-y divide-[#0f4034]"> <tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">ABBEYBANK</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">ABBEY BANK PLC</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> ABBEY BANK PLC </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 7.40 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#ef4444]"> -6.92% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">ABCTRANS</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">ASSOCIATED BUS</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> ASSOCIATED BUS </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 7.80 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#8899aa]"> 0.00% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">ACADEMY</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">ACADEMY PRESS</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> ACADEMY PRESS </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 6.40 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#ef4444]"> -4.48% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">ACCESSCORP</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">ACCESS HOLDINGS
+PLC</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> ACCESS HOLDINGS
+PLC </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 22.00 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#8899aa]"> 0.00% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">AFRINSURE</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">AFRICAN ALLIANCE</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> AFRICAN ALLIANCE </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 0.20 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#8899aa]"> 0.00% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">AFRIPRUD</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">AFRICA</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> AFRICA </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 11.70 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#8899aa]"> 0.00% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">AFROMEDIA</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">AFROMEDIA PLC</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> AFROMEDIA PLC </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 0.24 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#8899aa]"> 0.00% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">AIICO</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">AIICO INSURANCE</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> AIICO INSURANCE </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 4.01 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#8899aa]"> 0.00% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">AIRTELAFRI</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">AIRTEL AFRICA PLC</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> AIRTEL AFRICA PLC </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 4794.60 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#8899aa]"> 0.00% </td> </tr><tr class="hover:bg-[#0f4034]/30 transition-colors group"> <td class="py-4 px-6"> <div class="font-bold text-white group-hover:text-[#f59e0b] transition-colors">ALEX</div> <div class="text-[10px] text-[#8899aa] md:hidden truncate max-w-[120px] mt-1">ALUMINIUM</div> </td> <td class="py-4 px-6 hidden md:table-cell text-sm text-[#8899aa] truncate max-w-[200px]"> ALUMINIUM </td> <td class="py-4 px-6 text-right font-mono text-white text-sm"> 9.90 </td> <td class="py-4 px-6 text-right font-mono text-sm text-[#8899aa]"> 0.00% </td> </tr> </tbody> </table> </div> <div class="p-4 bg-[#001a14]/80 border-t border-[#0f4034] text-center"> <a href="/market" class="text-xs font-bold uppercase tracking-widest text-[#f59e0b] hover:text-white transition-colors">
+View Full Market Data &rarr;
+</a> </div> </div></div> </div> </section> <!-- Feature grid --> <section class="py-16 border-b border-[#0f4034]"> <div class="max-w-2xl mb-12"> <h2 class="text-3xl font-['Playfair_Display',serif] font-bold text-white mb-4">One terminal. Every decision.</h2> <p class="text-[#8899aa] leading-relaxed">
+A keyboard-driven professional workstation — type a function code, get an answer.
+          Charts, comparables, curves, filings, news and AI analysis in dockable panels.
+</p> </div> <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> <div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">DECIDE</span> <h3 class="text-white font-bold">Decision Dossiers</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">Six auditable pillars — Valuation, Quality, Momentum, Income, News, vs-Risk-Free — scored only from sourced numbers, for every NGX stock and asset class.</p> </div><div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">ASK</span> <h3 class="text-white font-bold">Ask TREASURE</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">&quot;Should I buy GTCO or hold T-bills?&quot; — a grounded AI analyst that answers only from live terminal data and cites every number it uses.</p> </div><div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">EQS</span> <h3 class="text-white font-bold">Factor Screener</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">Rank the whole NGX universe on value, quality, momentum, size and volatility factors. Deep Value, Dividend Aristocrats and Quality Compounder presets.</p> </div><div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">YIELD</span> <h3 class="text-white font-bold">Real Returns Desk</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">The sovereign curve from CBN and DMO auctions, deflated by official inflation — see instantly whether T-bills, bonds or bank savings beat inflation.</p> </div><div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">NEWS</span> <h3 class="text-white font-bold">Scored Market News</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">Every headline scored for materiality, tagged bullish or bearish, clustered across sources, and linked to the listed companies it actually affects.</p> </div><div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">WIRE</span> <h3 class="text-white font-bold">Breaking Wire</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">Converging multi-source stories trigger breaking alerts on the terminal and Telegram — with live prices, RSI and 52-week context attached.</p> </div><div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">FA</span> <h3 class="text-white font-bold">Audited Fundamentals</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">Five to ten years of audited P&amp;L and balance-sheet data parsed from NGX filings: PE vs sector, ROE, margins, Piotroski and Altman quality scores.</p> </div><div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">PEER</span> <h3 class="text-white font-bold">Peer Relative Value</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">Every name percentiled against its sector on multiples, performance, liquidity and returns — leaders and laggards at a glance.</p> </div><div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg hover:border-[#00d4aa]/40 transition-colors"> <div class="flex items-center gap-3 mb-3"> <span class="px-2 py-0.5 bg-[#001a14] border border-[#0f4034] rounded text-[11px] font-mono font-bold text-[#f59e0b]">RADAR</span> <h3 class="text-white font-bold">Personal Radar</h3> </div> <p class="text-sm text-[#8899aa] leading-relaxed">Register your holdings and get alerted only when something you own moves: scored news, RSI crosses, ±5% days, 52-week touches.</p> </div> </div> </section> <!-- Decision dossier showcase --> <section class="py-16 border-b border-[#0f4034] grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"> <div> <div class="text-[10px] font-bold uppercase tracking-widest text-[#00d4aa] mb-4">The flagship</div> <h2 class="text-3xl font-['Playfair_Display',serif] font-bold text-white mb-5">
+"Is this worth my money right now?"
+</h2> <p class="text-[#8899aa] leading-relaxed mb-6">
+Every security gets a <strong class="text-white">Decision Dossier</strong>: six pillars scored
+          only from real sourced numbers, with the evidence printed under every score — and what the
+          riskless alternative pays, so equity risk is always measured against the T-bill you could hold instead.
+</p> <p class="text-[#8899aa] leading-relaxed mb-8">
+Missing data shows as missing. Nothing is estimated, interpolated or invented —
+          a blank with a reason beats a wrong number.
+</p> <a href="/terminal" class="bg-[#f59e0b] hover:bg-[#d97706] text-[#001a14] font-bold px-6 py-3 rounded text-sm transition-colors">Open a Dossier →</a> </div> <div class="p-6 bg-[#032e25] border border-[#0f4034] rounded-lg font-mono text-sm"> <div class="text-[#f59e0b] font-bold mb-1">DECIDE GTCO</div> <div class="text-[#8899aa] mb-4">GTCO ₦120.95 · Financial Services</div> <div class="text-white font-bold mb-3">Verdict: <span class="text-[#00d4aa]">FAVORABLE</span> <span class="text-[#8899aa]">(4/6 pillars)</span></div> <ul class="space-y-2 text-[#c9d4dd]"> <li>🟢 <b>Valuation +2</b> — PE 5.1 vs sector 10.8</li> <li>🔴 <b>Quality −2</b> — Piotroski F-Score 1/4</li> <li>🟢 <b>Momentum +2</b> — golden cross, +56% vs ASI 6m</li> <li>🟢 <b>vs Risk-Free +1</b> — earnings yield 19.6% vs T-bill 15.9%</li> <li class="text-[#8899aa]">⚪ Income · News — no data → excluded, not neutral</li> </ul> <div class="mt-4 pt-3 border-t border-[#0f4034] text-xs text-[#8899aa]">Research signal, not investment advice. Every line traceable to source.</div> </div> </section> <!-- Telegram --> <section class="py-16 border-b border-[#0f4034]"> <div class="max-w-2xl mb-10"> <h2 class="text-3xl font-['Playfair_Display',serif] font-bold text-white mb-4">Intelligence that finds you</h2> <p class="text-[#8899aa] leading-relaxed">
+The terminal comes to Telegram: breaking alerts with direction tags and live tape numbers,
+          a morning brief, midday and close pulses, dossiers on demand — and a personal radar watching
+          only the names you hold.
+</p> </div> <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"> <div class="p-5 bg-[#032e25] border border-[#0f4034] rounded-lg"> <div class="text-2xl mb-2">🚨</div> <div class="text-white font-bold mb-1">Breaking Wire</div> <div class="text-[#8899aa] text-xs leading-relaxed">Multi-source stories, bullish/bearish tagged</div> </div><div class="p-5 bg-[#032e25] border border-[#0f4034] rounded-lg"> <div class="text-2xl mb-2">🌅</div> <div class="text-white font-bold mb-1">Morning Brief</div> <div class="text-[#8899aa] text-xs leading-relaxed">Market state + top scored stories, 08:00</div> </div><div class="p-5 bg-[#032e25] border border-[#0f4034] rounded-lg"> <div class="text-2xl mb-2">📊</div> <div class="text-white font-bold mb-1">Market Pulses</div> <div class="text-[#8899aa] text-xs leading-relaxed">Midday and close, trading days only</div> </div><div class="p-5 bg-[#032e25] border border-[#0f4034] rounded-lg"> <div class="text-2xl mb-2">🛰</div> <div class="text-white font-bold mb-1">Personal Radar</div> <div class="text-[#8899aa] text-xs leading-relaxed">Your holdings: news, RSI, ±5% moves</div> </div> </div> <a href="https://t.me/InvestNairaAlert" rel="noopener" class="inline-block mt-8 text-[#00d4aa] font-bold text-sm hover:underline">Join the Telegram channel →</a> </section> <!-- Data integrity --> <section class="py-16 border-b border-[#0f4034] text-center"> <h2 class="text-3xl font-['Playfair_Display',serif] font-bold text-white mb-5">Built on official sources. Nothing else.</h2> <p class="text-[#8899aa] max-w-2xl mx-auto leading-relaxed mb-10">
+NGX official lists and filings · Central Bank of Nigeria · Debt Management Office ·
+        National Bureau of Statistics · audited company accounts. Point-in-time archives,
+        survivorship-free universe, and one rule above all: <strong class="text-white">a blank beats a wrong number.</strong> </p> <div class="flex flex-wrap justify-center gap-3 text-[11px] font-bold uppercase tracking-widest"> <span class="px-4 py-2 bg-[#032e25] border border-[#0f4034] rounded text-[#00d4aa]">NGX</span><span class="px-4 py-2 bg-[#032e25] border border-[#0f4034] rounded text-[#00d4aa]">CBN</span><span class="px-4 py-2 bg-[#032e25] border border-[#0f4034] rounded text-[#00d4aa]">DMO</span><span class="px-4 py-2 bg-[#032e25] border border-[#0f4034] rounded text-[#00d4aa]">NBS</span><span class="px-4 py-2 bg-[#032e25] border border-[#0f4034] rounded text-[#00d4aa]">Audited Filings</span> </div> </section> <!-- Research --> <section class="py-16 border-b border-[#0f4034]"> <div class="flex items-center justify-between mb-8"> <h2 class="text-xl font-['Playfair_Display',serif] font-bold text-white">Latest Research</h2> <a href="/archive" class="text-sm text-[#f59e0b] hover:underline font-semibold">Full Library &rarr;</a> </div> <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> <article class="border border-[#0f4034] rounded-lg bg-[#032e25] p-6 group hover:border-[#8899aa]/30 transition-all flex flex-col h-full"><div class="flex items-center gap-2 mb-4"><span class="text-[10px] font-bold uppercase tracking-widest" style="color: #00d4aa;">company</span><span class="text-[10px] font-bold uppercase tracking-widest text-[#8899aa]">GTCO</span><span class="ml-auto text-[10px] text-[#8899aa] uppercase tracking-wider">Equity</span></div><h2 class="text-xl font-bold text-white leading-snug mb-3 group-hover:text-[#f59e0b] transition-colors flex-grow"><a href="/research/gtco-h1-2025-results-gtco-reports-41-yoy-revenue-growth-driven-by-strong-loan-book-expansion-and-improving-interest-margins">GTCO — H1 2025 Results: GTCO reports 41% YoY revenue growth, driven by strong loan book expansion and improving interest margins.</a></h2><p class="text-sm text-[#8899aa] leading-relaxed mb-6 line-clamp-3">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@300;400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&display=swap" rel="stylesheet" />
 
-  <style>
-    @layer reset, tokens, base, layout, header, ticker, components, pages, utilities, animations;
 
-    @layer tokens {
-      :root {
-        --c-bg:         #061A0E;
-        --c-surface:    #0D2B18;
-        --c-raised:     #122F1C;
-        --c-border:     rgba(234,230,220,.08);
-        --c-bd-mid:     rgba(234,230,220,.14);
-        --c-text:       #EAE6DC;
-        --c-muted:      rgba(234,230,220,.42);
-        --c-muted-dim:  rgba(234,230,220,.22);
-        --c-accent:     #008751;   /* Nigerian green */
-        --c-accent-g:   rgba(0,135,81,.18);
-        --c-gold:       #C9A04A;
-        --c-gold-dim:   rgba(201,160,74,.15);
-        --c-pos:        #3DBA7A;
-        --c-neg:        #E05252;
 
-        --font-display: 'Playfair Display', Georgia, serif;
-        --font-mono:    'DM Mono', 'Courier New', monospace;
-        --font-body:    'Source Serif 4', Georgia, serif;
 
-        --s--1: clamp(.75rem,  .7rem  + .24vw, .875rem);
-        --s-0:  clamp(1rem,    .93rem + .32vw, 1.125rem);
-        --s-1:  clamp(1.33rem, 1.24rem + .43vw, 1.5rem);
-        --s-2:  clamp(1.78rem, 1.65rem + .57vw, 2rem);
-        --s-3:  clamp(2.37rem, 2.2rem  + .76vw, 2.67rem);
-        --s-4:  clamp(3.16rem, 2.94rem + 1.02vw, 3.56rem);
-        --s-5:  clamp(4.21rem, 3.92rem + 1.36vw, 4.74rem);
-        --s-6:  clamp(5.61rem, 5.22rem + 1.8vw,  6.33rem);
+INVESTNAIRA RESEARCH NOTE
 
-        --sp-2xs: clamp(.25rem,.22rem + .12vw,.375rem);
-        --sp-xs:  clamp(.5rem, .46rem + .19vw,.625rem);
-        --sp-s:   clamp(.75rem,.7rem  + .24vw,1rem);
-        --sp-m:   clamp(1rem,  .93rem + .32vw,1.375rem);
-        --sp-l:   clamp(1.5rem,1.39rem + .49vw,2rem);
-        --sp-xl:  clamp(2rem,  1.86rem + .65vw,2.75rem);
-        --sp-2xl: clamp(3rem,  2.79rem + .97vw,4rem);
-        --sp-3xl: clamp(4.5rem,4.18rem + 1.46vw,6rem);
-        --sp-4xl: clamp(6rem,  5.57rem + 1.94vw,8rem);
 
-        --ease-expo:   cubic-bezier(.16,1,.3,1);
-        --ease-spring: cubic-bezier(.34,1.56,.64,1);
-      }
-    }
+GTCO — H1 2025
 
-    @layer reset {
-      *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html  { scroll-behavior: smooth; }
-      ul    { list-style: none; }
-      img   { max-width: 100%; display: block; }
-      button{ font: inherit; border: none; background: none; cursor: pointer; }
-      a     { color: inherit; text-decoration: none; cursor: none; }
-    }
 
-    @layer base {
-      html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-      body {
-        background: var(--c-bg); color: var(--c-text);
-        font-family: var(--font-body); font-size: var(--s-0); font-weight: 300;
-        line-height: 1.7; overflow-x: hidden; cursor: none;
-      }
-      /* Chart-grid texture */
-      body::before {
-        content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-        background-image:
-          linear-gradient(rgba(0,135,81,.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,135,81,.03) 1px, transparent 1px);
-        background-size: 48px 48px;
-        mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 40%, transparent 100%);
-      }
-      /* Grain */
-      body::after {
-        content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9000; opacity: .035;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-        background-size: 160px 160px;
-      }
-      :focus-visible { outline: 1.5px solid var(--c-accent); outline-offset: 4px; border-radius: 2px; }
-    }
+GTCO reports 41% YoY revenue growth, driven by strong loan book expansion and improving interest margins.
 
-    @layer layout {
-      .container { max-width: 1300px; margin-inline: auto; padding-inline: var(--sp-l); position: relative; z-index: 1; }
-      .sp  { padding-block: var(--sp-3xl); }
-      .sp-l{ padding-block: var(--sp-4xl); }
-    }
 
-    @layer header {
-      .cursor      { position: fixed; width: 6px; height: 6px; background: var(--c-accent); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); will-change: transform; transition: width .25s var(--ease-expo),height .25s var(--ease-expo),background .2s; }
-      .cursor-ring { position: fixed; width: 32px; height: 32px; border: 1px solid rgba(0,135,81,.45); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); will-change: transform; transition: width .4s var(--ease-expo),height .4s var(--ease-expo),border-color .3s; }
-      body.cur-on .cursor      { width: 3px; height: 3px; background: var(--c-gold); }
-      body.cur-on .cursor-ring { width: 52px; height: 52px; border-color: rgba(201,160,74,.5); }
+BUY
 
-      .site-header {
-        position: fixed; inset-block-start: 0; inset-inline: 0; z-index: 100;
-        padding: var(--sp-m) var(--sp-l);
-        display: flex; align-items: center; justify-content: space-between;
-        border-block-end: 1px solid var(--c-border);
-        background: rgba(6,26,14,.94);
-        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-        transition: border-color .4s, background-color .4s, backdrop-filter .4s;
-      }
-      .site-header.on {
-        border-color: var(--c-border);
-        background: rgba(6,26,14,.97);
-        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      }
-      .logo { display: flex; align-items: center; gap: var(--sp-s); font-family: var(--font-display); font-size: var(--s-1); font-weight: 600; letter-spacing: -.02em; cursor: none; }
-      .logo-flag { display: flex; gap: 2px; width: 18px; height: 20px; }
-      .logo-flag span { flex: 1; border-radius: 1px; }
-      .logo-flag span:nth-child(1), .logo-flag span:nth-child(3) { background: var(--c-accent); }
-      .logo-flag span:nth-child(2) { background: var(--c-text); opacity: .9; }
 
-      .main-nav ul   { display: flex; gap: var(--sp-l); }
-      .main-nav a    { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .07em; text-transform: uppercase; color: var(--c-muted); transition: color .25s; }
-      .main-nav a:hover, .main-nav a.active { color: var(--c-text); }
-      .main-nav a.active { border-block-end: 1px solid var(--c-accent); padding-block-end: 2px; }
+25 February 2026 · AI-assisted draft — verify all figures
 
-      .nav-cta { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 400; letter-spacing: .07em; text-transform: uppercase; color: var(--c-bg); background: var(--c-accent); padding: var(--sp-xs) var(--sp-m); border-radius: 2px; cursor: none; transition: background .25s; }
-      .nav-cta:hover { background: color-mix(in srgb, var(--c-accent) 80%, white); }
 
-      .hamburger { display: none; flex-direction: column; gap: 5px; padding: 4px; cursor: none; }
-      .hamburger span { display: block; width: 22px; height: 1.5px; background: var(--c-text); transition: transform .3s, opacity .3s; }
-    }
 
-    @layer ticker {
-      .ticker-bar {
-        background: var(--c-surface);
-        border-block-end: 1px solid var(--c-border);
-        padding-block: var(--sp-2xs);
-        overflow: hidden;
-        position: relative;
-        z-index: 10;
-        margin-block-start: 108px;
-      }
-      .ticker-track { display: flex; width: max-content; gap: var(--sp-2xl); align-items: center; animation-play-state: paused;}
-      .ticker-item { display: flex; align-items: center; gap: var(--sp-xs); white-space: nowrap; font-family: var(--font-mono); font-size: var(--s--1); font-weight: 400; }
-      .tk-sym { color: var(--c-text); letter-spacing: .06em; }
-      .tk-prc { color: var(--c-muted); }
-      .tk-chg { font-size: .72em; letter-spacing: .04em; }
-      .tk-chg.up   { color: var(--c-pos); }
-      .tk-chg.down { color: var(--c-neg); }
-      .tk-div { width: 1px; height: 14px; background: var(--c-bd-mid); flex-shrink: 0; }
-    }
 
-    @layer components {
-      /* Section header */
-      .sec-head { display: flex; align-items: baseline; justify-content: space-between; border-block-end: 1px solid var(--c-border); padding-block-end: var(--sp-m); margin-block-end: var(--sp-2xl); }
-      .sec-eye  { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .1em; text-transform: uppercase; color: var(--c-accent); margin-block-end: var(--sp-xs); }
-      .sec-ttl  { font-family: var(--font-display); font-size: var(--s-4); font-weight: 600; letter-spacing: -.04em; font-style: italic; }
-      .sec-lnk  { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .07em; text-transform: uppercase; color: var(--c-muted); border-block-end: 1px solid currentColor; padding-block-end: 2px; transition: color .25s; white-space: nowrap; cursor: none; }
-      .sec-lnk:hover { color: var(--c-text); }
 
-      /* Buttons */
-      .btn-primary {
-        display: inline-flex; align-items: center; gap: var(--sp-m);
-        font-family: var(--font-mono); font-size: var(--s--1); font-weight: 400; letter-spacing: .1em; text-transform: uppercase;
-        background: var(--c-accent); color: var(--c-bg);
-        padding: var(--sp-m) var(--sp-2xl); border-radius: 2px;
-        position: relative; overflow: hidden; cursor: none; transition: color .3s;
-      }
-      .btn-primary::before { content: ''; position: absolute; inset: 0; background: var(--c-gold); transform: translateX(-101%); transition: transform .45s var(--ease-expo); }
-      .btn-primary:hover::before { transform: translateX(0); }
-      .btn-primary > * { position: relative; z-index: 1; }
-      .btn-primary .arr { display: inline-block; transition: transform .3s var(--ease-expo); }
-      .btn-primary:hover .arr { transform: translateX(6px); }
 
-      .btn-ghost { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .08em; text-transform: uppercase; color: var(--c-muted); border-block-end: 1px solid currentColor; padding-block-end: 2px; cursor: none; transition: color .25s; }
-      .btn-ghost:hover { color: var(--c-text); }
+Revenue Growth
++41% YoY
 
-      /* Type tag */
-      .type-badge { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .07em; text-transform: uppercase; padding: var(--sp-2xs) var(--sp-xs); border-radius: 2px; white-space: nowrap; }
-      .type-badge.equity    { color: var(--c-pos);    border: 1px solid rgba(61,186,122,.3);   background: rgba(61,186,122,.06); }
-      .type-badge.commodity { color: var(--c-gold);   border: 1px solid rgba(201,160,74,.3);   background: rgba(201,160,74,.06); }
-      .type-badge.currency  { color: var(--c-accent); border: 1px solid rgba(0,135,81,.4);     background: rgba(0,135,81,.06); }
-      .type-badge.realestate{ color: #E8A87C;         border: 1px solid rgba(232,168,124,.3);  background: rgba(232,168,124,.06); }
-      .type-badge.crypto    { color: #A78BFA;         border: 1px solid rgba(167,139,250,.3);  background: rgba(167,139,250,.06); }
 
-      /* Report row */
-      .report-row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: var(--sp-xl); padding-block: var(--sp-l); padding-inline: var(--sp-s); border-block-end: 1px solid var(--c-border); transition: background .25s; cursor: none; position: relative; overflow: hidden; }
-      .report-row:first-child { border-block-start: 1px solid var(--c-border); }
-      .report-row:hover { background: var(--c-surface); }
-      .report-row::after { content: ''; position: absolute; inset-block-end: 0; inset-inline-start: 0; height: 1px; width: 0; background: var(--c-accent); transition: width .45s var(--ease-expo); }
-      .report-row:hover::after { width: 100%; }
-      .report-date { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .06em; color: var(--c-muted); white-space: nowrap; }
-      .report-title { font-family: var(--font-display); font-size: var(--s-1); font-weight: 400; letter-spacing: -.01em; }
-      .report-cta { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .07em; text-transform: uppercase; color: var(--c-accent); border-block-end: 1px solid currentColor; padding-block-end: 2px; white-space: nowrap; transition: color .25s; cursor: none; }
-      .report-row:hover .report-cta { color: color-mix(in srgb, var(--c-accent) 75%, white); }
+Profit Growth
++25% YoY
 
-      /* Category card */
-      .cat-card { background: var(--c-bg); padding: var(--sp-xl); display: flex; flex-direction: column; gap: var(--sp-l); position: relative; overflow: hidden; transition: background .35s; cursor: none; }
-      .cat-card:hover { background: var(--c-raised); }
-      .cat-card::before { content: ''; position: absolute; bottom: 0; left: 0; height: 1px; width: 0; background: var(--c-accent); transition: width .5s var(--ease-expo); }
-      .cat-card:hover::before { width: 100%; }
-      .cat-icon { font-size: var(--s-3); line-height: 1; }
-      .cat-name { font-family: var(--font-display); font-size: var(--s-2); font-weight: 600; letter-spacing: -.02em; margin-block-end: var(--sp-xs); }
-      .cat-desc { font-size: var(--s-0); font-weight: 300; color: var(--c-muted); line-height: 1.65; }
-      .cat-foot { display: flex; align-items: center; justify-content: space-between; border-block-start: 1px solid var(--c-border); padding-block-start: var(--sp-m); margin-block-start: auto; }
-      .cat-count { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .06em; color: var(--c-muted); }
-      .cat-arr { color: var(--c-accent); transition: transform .3s var(--ease-expo); }
-      .cat-card:hover .cat-arr { transform: translateX(6px); }
 
-      /* Pricing card */
-      .plan-card { background: var(--c-surface); border: 1px solid var(--c-border); padding: var(--sp-xl); display: flex; flex-direction: column; gap: var(--sp-l); position: relative; overflow: hidden; transition: border-color .3s, background .3s; }
-      .plan-card.featured { border-color: var(--c-accent); background: var(--c-raised); }
-      .plan-card.featured::before { content: 'Most Popular'; position: absolute; top: 0; right: var(--sp-xl); font-family: var(--font-mono); font-size: .68rem; font-weight: 400; letter-spacing: .08em; text-transform: uppercase; color: var(--c-bg); background: var(--c-accent); padding: 4px 10px; }
-      .plan-name  { font-family: var(--font-display); font-size: var(--s-2); font-weight: 600; letter-spacing: -.02em; }
-      .plan-price { font-family: var(--font-display); font-size: var(--s-4); font-weight: 700; letter-spacing: -.04em; line-height: 1; }
-      .plan-price sup { font-size: .5em; vertical-align: super; font-weight: 400; }
-      .plan-period { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; color: var(--c-muted); margin-block-start: var(--sp-xs); }
-      .plan-save { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; color: var(--c-pos); }
-      .plan-divider { height: 1px; background: var(--c-border); }
-      .plan-features { display: flex; flex-direction: column; gap: var(--sp-s); flex: 1; }
-      .plan-feat { display: flex; align-items: flex-start; gap: var(--sp-s); font-size: var(--s-0); font-weight: 300; line-height: 1.5; }
-      .feat-icon { color: var(--c-accent); font-size: .9em; flex-shrink: 0; margin-block-start: .15em; }
-      .plan-cta { width: 100%; text-align: center; padding: var(--sp-m); font-family: var(--font-mono); font-size: var(--s--1); font-weight: 400; letter-spacing: .08em; text-transform: uppercase; border-radius: 2px; cursor: none; transition: background .25s, color .25s; }
-      .plan-cta.primary { background: var(--c-accent); color: var(--c-bg); }
-      .plan-cta.primary:hover { background: color-mix(in srgb, var(--c-accent) 80%, white); }
-      .plan-cta.outline { border: 1px solid var(--c-bd-mid); color: var(--c-text); }
-      .plan-cta.outline:hover { border-color: var(--c-accent); color: var(--c-accent); }
+Rating
+BUY
 
-      /* FAQ */
-      .faq-item { border-block-end: 1px solid var(--c-border); }
-      .faq-q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--sp-l); padding-block: var(--sp-l); font-family: var(--font-display); font-size: var(--s-1); font-weight: 400; text-align: left; color: var(--c-text); cursor: none; transition: color .25s; }
-      .faq-q:hover { color: var(--c-accent); }
-      .faq-icon { font-size: var(--s-1); color: var(--c-accent); transition: transform .35s var(--ease-expo); flex-shrink: 0; line-height: 1; }
-      .faq-item.open .faq-icon { transform: rotate(45deg); }
-      .faq-a { max-height: 0; overflow: hidden; transition: max-height .45s var(--ease-expo), padding .35s; }
-      .faq-item.open .faq-a { max-height: 400px; padding-block-end: var(--sp-l); }
-      .faq-a-inner { font-size: var(--s-0); font-weight: 300; color: var(--c-muted); line-height: 1.7; max-width: 65ch; }
 
-      /* Stat */
-      .stat-box { padding: var(--sp-xl) var(--sp-l); border-inline-end: 1px solid var(--c-border); position: relative; overflow: hidden; transition: background .3s; }
-      .stat-box:last-child { border-inline-end: none; }
-      .stat-box:hover { background: var(--c-raised); }
-      .stat-box::after { content: ''; position: absolute; bottom: 0; left: 0; height: 2px; width: 0; background: linear-gradient(90deg, var(--c-accent), var(--c-gold)); transition: width .55s var(--ease-expo); }
-      .stat-box:hover::after { width: 100%; }
-      .stat-num { font-family: var(--font-display); font-size: var(--s-4); font-weight: 600; letter-spacing: -.04em; line-height: 1; margin-block-end: var(--sp-xs); }
-      .stat-lbl { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .07em; text-transform: uppercase; color: var(--c-muted); }
 
-      /* Toggle */
-      .billing-toggle { display: flex; align-items: center; gap: var(--sp-m); font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .07em; text-transform: uppercase; }
-      .toggle-track { position: relative; width: 52px; height: 28px; background: var(--c-surface); border: 1px solid var(--c-bd-mid); border-radius: 14px; cursor: none; transition: background .3s; }
-      .toggle-track.on { background: var(--c-accent); border-color: var(--c-accent); }
-      .toggle-knob { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: var(--c-text); border-radius: 50%; transition: transform .35s var(--ease-expo); }
-      .toggle-track.on .toggle-knob { transform: translateX(24px); }
-      .toggle-lbl { color: var(--c-muted); transition: color .25s; }
-      .toggle-lbl.active { color: var(--c-text); }
 
-      /* Social pill */
-      .social-link { display: inline-flex; align-items: center; gap: var(--sp-xs); font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .07em; text-transform: uppercase; color: var(--c-muted); padding: var(--sp-xs) var(--sp-m); border: 1px solid var(--c-border); border-radius: 2px; transition: color .25s, border-color .25s; cursor: none; }
-      .social-link:hover { color: var(--c-text); border-color: var(--c-bd-mid); }
 
-      /* Page hero */
-      .page-hero { padding-block: var(--sp-4xl) var(--sp-2xl); border-block-end: 1px solid var(--c-border); margin-block-end: var(--sp-2xl); }
-      .page-eye  { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .1em; text-transform: uppercase; color: var(--c-accent); margin-block-end: var(--sp-m); }
-      .page-h1   { font-family: var(--font-display); font-size: var(--s-5); font-weight: 600; letter-spacing: -.05em; line-height: .95; font-style: italic; }
-      .page-sub  { font-size: var(--s-1); font-weight: 300; font-style: italic; color: var(--c-muted); max-width: 48ch; line-height: 1.5; margin-block-start: var(--sp-l); }
 
-      /* Footer */
-      .site-footer { border-block-start: 1px solid var(--c-border); position: relative; z-index: 1; }
-      .ftr-top { display: grid; grid-template-columns: 1.8fr 1fr 1fr 1fr; gap: var(--sp-2xl); padding-block: var(--sp-2xl); }
-      .ftr-brand-name { font-family: var(--font-display); font-size: var(--s-2); font-weight: 600; letter-spacing: -.02em; margin-block-end: var(--sp-m); display: flex; align-items: center; gap: var(--sp-s); }
-      .ftr-desc { font-size: var(--s-0); font-weight: 300; color: var(--c-muted); line-height: 1.65; max-width: 32ch; margin-block-end: var(--sp-l); }
-      .ftr-socials { display: flex; flex-wrap: wrap; gap: var(--sp-s); }
-      .ftr-col-ttl { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 400; letter-spacing: .09em; text-transform: uppercase; color: var(--c-text); margin-block-end: var(--sp-l); }
-      .ftr-col ul  { display: flex; flex-direction: column; gap: var(--sp-s); }
-      .ftr-col a   { font-size: var(--s-0); font-weight: 300; color: var(--c-muted); transition: color .25s; cursor: none; }
-      .ftr-col a:hover { color: var(--c-text); }
-      .ftr-btm { border-block-start: 1px solid var(--c-border); padding-block: var(--sp-m); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-m); }
-      .ftr-legal { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .05em; color: var(--c-muted); }
-      .ngx-live { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .04em; color: var(--c-muted); display: flex; align-items: center; gap: var(--sp-xs); }
-      .ngx-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--c-pos); box-shadow: 0 0 6px var(--c-pos); }
+Key</p><div class="mt-auto pt-5 border-t border-[#0f4034] flex items-center justify-between"><div class="text-xs text-[#8899aa] uppercase tracking-wider">2 Jun 2026</div><div class="flex items-center gap-3"><span class="text-[10px] text-[#8899aa] font-bold uppercase tracking-widest border border-[#0f4034] px-2 py-0.5 rounded">Premium</span><a href="/research/gtco-h1-2025-results-gtco-reports-41-yoy-revenue-growth-driven-by-strong-loan-book-expansion-and-improving-interest-margins" class="text-[#f59e0b] text-sm font-semibold hover:underline">
+Read &rarr;
+</a></div></div></article> <article class="border border-[#0f4034] rounded-lg bg-[#032e25] p-6 group hover:border-[#8899aa]/30 transition-all flex flex-col h-full"><div class="flex items-center gap-2 mb-4"><span class="text-[10px] font-bold uppercase tracking-widest" style="color: #00d4aa;">company</span><span class="ml-auto text-[10px] text-[#8899aa] uppercase tracking-wider">Equity</span></div><h2 class="text-xl font-bold text-white leading-snug mb-3 group-hover:text-[#f59e0b] transition-colors flex-grow"><a href="/research/nem-h1-2025-results-nems-h1-2025-results-show-a-35-yoy-increase-in-gross-revenue-driven-by-strong-loan-growth-and-improved-interest-margins">NEM — H1 2025 Results: NEM&#39;s H1 2025 results show a 35% YoY increase in gross revenue, driven by strong loan growth and improved interest margins.</a></h2><p class="text-sm text-[#8899aa] leading-relaxed mb-6 line-clamp-3">
 
-      /* Mobile nav overlay */
-      .mobile-nav { position: fixed; inset: 0; background: var(--c-bg); z-index: 99; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-xl); opacity: 0; pointer-events: none; transition: opacity .35s; }
-      .mobile-nav.open { opacity: 1; pointer-events: all; }
-      .mobile-nav a { font-family: var(--font-display); font-size: var(--s-3); font-weight: 400; font-style: italic; color: var(--c-muted); transition: color .25s; cursor: none; }
-      .mobile-nav a:hover { color: var(--c-text); }
-    }
 
-    @layer pages {
-      /* Home hero */
-      .hero { min-height: 100svh; display: grid; grid-template-rows: 1fr auto; position: relative; overflow: hidden; }
-      .hero::before { content: ''; position: absolute; top: -15%; right: -10%; width: 60vmax; height: 60vmax; background: radial-gradient(circle, rgba(0,135,81,.06) 0%, transparent 65%); pointer-events: none; }
-      .hero::after  { content: ''; position: absolute; bottom: -20%; left: -10%; width: 50vmax; height: 50vmax; background: radial-gradient(circle, rgba(201,160,74,.04) 0%, transparent 65%); pointer-events: none; }
-      .hero-naira { position: absolute; right: -.05em; top: 50%; transform: translateY(-50%); font-family: var(--font-display); font-size: clamp(16rem,38vw,52rem); font-weight: 700; color: transparent; -webkit-text-stroke: 1px rgba(0,135,81,.07); line-height: 1; pointer-events: none; user-select: none; z-index: 0; }
-      .hero-inner { display: flex; flex-direction: column; justify-content: center; padding: var(--sp-4xl) var(--sp-l) var(--sp-2xl); position: relative; z-index: 1; }
-      .hero-badge { display: inline-flex; align-items: center; gap: var(--sp-s); padding: var(--sp-xs) var(--sp-m); border: 1px solid var(--c-bd-mid); border-radius: 2px; background: rgba(0,135,81,.04); width: fit-content; margin-block-end: var(--sp-xl); }
-      .hero-dot   { width: 6px; height: 6px; border-radius: 50%; background: var(--c-accent); box-shadow: 0 0 8px var(--c-accent); flex-shrink: 0; }
-      .hero-badge-txt { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .1em; text-transform: uppercase; color: var(--c-muted); }
-      .hero-h1  { font-family: var(--font-display); font-size: clamp(3.2rem,8vw,7.5rem); font-weight: 600; letter-spacing: -.04em; line-height: .95; max-width: 16ch; position: relative; z-index: 1; }
-      .hero-h1 em { font-style: italic; font-weight: 400; color: var(--c-gold); }
-      .hero-sub-row { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: var(--sp-xl); margin-block-start: var(--sp-xl); position: relative; z-index: 1; }
-      .hero-desc  { font-size: var(--s-1); font-weight: 300; font-style: italic; color: var(--c-muted); max-width: 38ch; line-height: 1.5; }
-      .hero-tags  { display: flex; flex-direction: column; align-items: flex-end; gap: var(--sp-xs); }
-      .hero-tag   { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .08em; text-transform: uppercase; color: var(--c-muted); display: flex; align-items: center; gap: var(--sp-xs); }
-      .hero-tag::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--c-accent); }
-      .hero-chart { position: relative; z-index: 1; border-block-start: 1px solid var(--c-border); padding: var(--sp-m) var(--sp-l); display: flex; align-items: center; gap: var(--sp-l); }
-      .chart-label { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; letter-spacing: .08em; text-transform: uppercase; color: var(--c-muted); flex-shrink: 0; writing-mode: vertical-rl; transform: rotate(180deg); }
-      .chart-wrap  { flex: 1; height: 64px; }
-      .chart-svg   { width: 100%; height: 100%; overflow: visible; }
-      .chart-path  { fill: none; stroke: var(--c-accent); stroke-width: 1.5px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-      .chart-fill  { fill: url(#chartGrad); opacity: .35; }
-      .chart-meta  { font-family: var(--font-mono); font-size: var(--s--1); font-weight: 300; flex-shrink: 0; text-align: right; }
-      .chart-val   { color: var(--c-text); font-size: var(--s-0); letter-spacing: -.01em; }
-      .chart-chg   { color: var(--c-pos); letter-spacing: .04em; }
 
-      /* Stats bar */
-      .stats-bar { background: var(--c-surface); border-block: 1px solid var(--c-border); }
-      .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); }
 
-      /* Category grid */
-      .cats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--c-border); }
 
-      /* Pricing grid */
-      .plans-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--sp-l); }
+INVESTNAIRA RESEARCH NOTE
 
-      /* About grid */
-      .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2xl); align-items: start; }
-      .about-body { font-size: var(--s-1); font-weight: 300; line-height: 1.7; }
-      .about-body p + p { margin-block-start: var(--sp-m); }
-      .about-pull { font-family: var(--font-display); font-size: var(--s-3); font-style: italic; font-weight: 400; color: var(--c-gold); line-height: 1.3; border-block-start: 2px solid var(--c-gold); padding-block-start: var(--sp-l); }
-      .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--c-border); }
-      .method-card { background: var(--c-bg); padding: var(--sp-xl); }
-      .method-num  { font-family: var(--font-mono); font-size: var(--s-4); font-weight: 300; color: var(--c-border); line-height: 1; margin-block-end: var(--sp-m); transition: color .3s; }
-      .method-card:hover .method-num { color: rgba(234,230,220,.15); }
-      .method-name { font-family: var(--font-display); font-size: var(--s-2); font-weight: 600; letter-spacing: -.02em; margin-block-end: var(--sp-s); }
-      .method-desc { font-size: var(--s-0); font-weight: 300; color: var(--c-muted); line-height: 1.65; }
 
-      /* Report detail body */
-      .report-body {
-        font-size: var(--s-0);
-        line-height: 1.9;
-        color: var(--c-text);
-      }
-      .report-body > * + * { margin-block-start: var(--sp-l); }
-      .report-body h1,
-      .report-body h2,
-      .report-body h3,
-      .report-body h4 {
-        font-family: var(--font-display);
-        font-weight: 600;
-        letter-spacing: -.03em;
-        line-height: 1.08;
-        margin-block: var(--sp-2xl) var(--sp-m);
-      }
-      .report-body h2 { font-size: var(--s-3); }
-      .report-body h3 { font-size: var(--s-2); }
-      .report-body p,
-      .report-body li,
-      .report-body blockquote {
-        color: color-mix(in srgb, var(--c-text) 92%, white 8%);
-      }
-      .report-body a {
-        color: var(--c-accent);
-        text-decoration: underline;
-        text-decoration-color: color-mix(in srgb, var(--c-accent) 55%, transparent);
-        text-underline-offset: 3px;
-      }
-      .report-body ul,
-      .report-body ol {
-        padding-inline-start: 1.2rem;
-      }
-      .report-body li + li {
-        margin-block-start: var(--sp-xs);
-      }
-      .report-body blockquote {
-        border-inline-start: 2px solid var(--c-gold);
-        padding-inline-start: var(--sp-l);
-        font-style: italic;
-        color: var(--c-muted);
-      }
-      .report-body hr {
-        border: 0;
-        border-top: 1px solid var(--c-border);
-        margin-block: var(--sp-2xl);
-      }
-      .report-body img {
-        border: 1px solid var(--c-border);
-      }
-      .report-body table {
-        width: 100%;
-        border-collapse: collapse;
-        display: block;
-        overflow-x: auto;
-        background: var(--c-surface);
-        border: 1px solid var(--c-border);
-      }
-      .report-body th,
-      .report-body td {
-        padding: var(--sp-s);
-        border-bottom: 1px solid var(--c-border);
-        text-align: left;
-        vertical-align: top;
-      }
-      .report-body th {
-        font-family: var(--font-mono);
-        font-size: var(--s--1);
-        letter-spacing: .06em;
-        text-transform: uppercase;
-        color: var(--c-muted);
-        background: var(--c-raised);
-      }
-    }
+NEM — H1 2025
 
-    @layer utilities {
-      .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
-      .reveal   { opacity:0; transform:translateY(24px); }
-      .text-gold { color: var(--c-gold); }
-      .text-accent { color: var(--c-accent); }
-      @media (prefers-reduced-motion:reduce) { .reveal{opacity:1;transform:none;} }
-    }
 
-    @layer animations {
-      @media (prefers-reduced-motion:no-preference) {
-        @keyframes fadeUp   { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
-        @keyframes ticker   { from{transform:translateX(0);} to{transform:translateX(-50%);} }
-        @keyframes dotPulse { 0%,100%{box-shadow:0 0 6px var(--c-accent-g);} 50%{box-shadow:0 0 14px var(--c-accent-g),0 0 28px var(--c-accent-g);} }
-        @keyframes drawLine { from{stroke-dashoffset:var(--plen,2000);} to{stroke-dashoffset:0;} }
-        @keyframes pageFade { from{opacity:0;transform:translateY(12px);} to{opacity:1;transform:translateY(0);} }
+NEM&#39;s H1 2025 results show a 35% YoY increase in gross revenue, driven by strong loan growth and improved interest margins.
 
-        .hero-dot  { animation: dotPulse 2.5s ease-in-out infinite; }
-        .ticker-track { animation: ticker 28s linear infinite; animation-play-state: paused;} 
-        .is-visible { animation: fadeUp .75s var(--ease-expo) forwards; }
-        #app { animation: pageFade .4s var(--ease-expo); }
-      }
-    }
 
-    /* Responsive */
-    @media (max-width:1024px) {
-      .stats-grid { grid-template-columns:repeat(2,1fr); }
-      .cats-grid  { grid-template-columns:1fr 1fr; }
-      .plans-grid { grid-template-columns:1fr; max-width:480px; margin-inline:auto; }
-      .ftr-top    { grid-template-columns:1fr 1fr; }
-      .about-grid { grid-template-columns:1fr; }
-      .method-grid{ grid-template-columns:1fr; }
-    }
-    @media (max-width:768px) {
-      body { cursor:auto; }
-      .cursor,.cursor-ring { display:none; }
-      .main-nav { display:none; }
-      .nav-cta.desktop { display:none; }
-      .hamburger { display:flex; }
-      .ticker-bar { margin-block-start: 72px; }
-      .hero-sub-row { grid-template-columns:1fr; }
-      .hero-tags { align-items:flex-start; }
-      .hero-tag::before { display:none; }
-      .cats-grid  { grid-template-columns:1fr; }
-      .stats-grid { grid-template-columns:1fr 1fr; }
-      .report-row { grid-template-columns:1fr auto; }
-      .report-row .type-badge,.report-row .report-date { display:none; }
-      .ftr-top { grid-template-columns:1fr; }
-      .hero-naira { opacity:.04; font-size:65vw; }
-    }
-  </style>
-</head>
-<body>
-  <div class="cursor"      aria-hidden="true"></div>
-  <div class="cursor-ring" aria-hidden="true"></div>
+BUY
 
-  <header class="site-header" id="site-header" role="banner">
-    <a href="#/" class="logo" aria-label="InvestNaira home">
-      <div class="logo-flag" aria-hidden="true"><span></span><span></span><span></span></div>
-      InvestNaira
-    </a>
-    <nav class="main-nav" aria-label="Primary">
-      <ul>
-        <li><a href="#/" data-route="home">Home</a></li>
-        <li><a href="#/research" data-route="research">Research</a></li>
-        <li><a href="#/reports" data-route="reports">Reports</a></li>
-        <li><a href="#/subscribe" data-route="subscribe">Subscribe</a></li>
-        <li><a href="#/about" data-route="about">About</a></li>
-        <li><a href="#/faq" data-route="faq">FAQ</a></li>
-      </ul>
-    </nav>
-    <div style="display:flex;align-items:center;gap:var(--sp-m);">
-      <a href="#/subscribe" class="nav-cta desktop">Subscribe</a>
-      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </header>
 
-  <!-- Mobile nav -->
-  <div class="mobile-nav" id="mobile-nav" role="dialog" aria-label="Navigation">
-    <a href="#/" data-route="home">Home</a>
-    <a href="#/research" data-route="research">Research</a>
-    <a href="#/reports" data-route="reports">Reports</a>
-    <a href="#/subscribe" data-route="subscribe">Subscribe</a>
-    <a href="#/about" data-route="about">About</a>
-    <a href="#/faq" data-route="faq">FAQ</a>
-  </div>
+25 February 2026 · AI-assisted draft — verify all figures
 
-  <!-- Ticker -->
-  <div class="ticker-bar" role="marquee" aria-label="Live market data" aria-live="off">
-    <div class="ticker-track" id="ticker-track"></div>
-  </div>
 
-  <!-- SPA mount point -->
-  <div id="app" role="main"></div>
 
-  <!-- Footer (always visible) -->
-  <footer class="site-footer" id="site-footer" role="contentinfo"></footer>
 
-  <script src="config.js"></script>
-  <script src="app.js"></script>
-</body>
-</html>
+
+
+Revenue Growth
++35% YoY
+
+
+Profit Growth
++25% YoY
+
+
+Rat</p><div class="mt-auto pt-5 border-t border-[#0f4034] flex items-center justify-between"><div class="text-xs text-[#8899aa] uppercase tracking-wider">2 Jun 2026</div><div class="flex items-center gap-3"><span class="text-[10px] text-[#8899aa] font-bold uppercase tracking-widest border border-[#0f4034] px-2 py-0.5 rounded">Premium</span><a href="/research/nem-h1-2025-results-nems-h1-2025-results-show-a-35-yoy-increase-in-gross-revenue-driven-by-strong-loan-growth-and-improved-interest-margins" class="text-[#f59e0b] text-sm font-semibold hover:underline">
+Read &rarr;
+</a></div></div></article><article class="border border-[#0f4034] rounded-lg bg-[#032e25] p-6 group hover:border-[#8899aa]/30 transition-all flex flex-col h-full"><div class="flex items-center gap-2 mb-4"><span class="text-[10px] font-bold uppercase tracking-widest" style="color: #00d4aa;">company</span><span class="ml-auto text-[10px] text-[#8899aa] uppercase tracking-wider">Equity</span></div><h2 class="text-xl font-bold text-white leading-snug mb-3 group-hover:text-[#f59e0b] transition-colors flex-grow"><a href="/research/chams-h1-2025-results-chams-reports-n1-2b-profit-218-yoy-driven-by-strong-revenue-growth-and-a-n52b-nimc-court-award">CHAMS — H1 2025 Results: CHAMS reports ₦1.2B profit, +218% YoY, driven by strong revenue growth and a ₦52B NIMC court award.</a></h2><p class="text-sm text-[#8899aa] leading-relaxed mb-6 line-clamp-3">
+
+
+
+
+
+INVESTNAIRA RESEARCH NOTE
+
+
+CHAMS — H1 2025
+
+
+CHAMS reports ₦1.2B profit, +218% YoY, driven by strong revenue growth and a ₦52B NIMC court award.
+
+
+STRONG BUY
+
+
+25 February 2026 · AI-assisted draft — verify all figures
+
+
+
+
+
+
+Revenue Growth
++218% YoY
+
+
+Profit Growth
++218% YoY
+
+
+Rating
+STRONG BU</p><div class="mt-auto pt-5 border-t border-[#0f4034] flex items-center justify-between"><div class="text-xs text-[#8899aa] uppercase tracking-wider">2 Jun 2026</div><div class="flex items-center gap-3"><span class="text-[10px] text-[#8899aa] font-bold uppercase tracking-widest border border-[#0f4034] px-2 py-0.5 rounded">Premium</span><a href="/research/chams-h1-2025-results-chams-reports-n1-2b-profit-218-yoy-driven-by-strong-revenue-growth-and-a-n52b-nimc-court-award" class="text-[#f59e0b] text-sm font-semibold hover:underline">
+Read &rarr;
+</a></div></div></article><article class="border border-[#0f4034] rounded-lg bg-[#032e25] p-6 group hover:border-[#8899aa]/30 transition-all flex flex-col h-full"><div class="flex items-center gap-2 mb-4"><span class="text-[10px] font-bold uppercase tracking-widest" style="color: #00d4aa;">company</span><span class="ml-auto text-[10px] text-[#8899aa] uppercase tracking-wider">Real Estate</span></div><h2 class="text-xl font-bold text-white leading-snug mb-3 group-hover:text-[#f59e0b] transition-colors flex-grow"><a href="/research/arkbuilder-h1-2026-results-arkbuilders-h1-2026-results-show-a-significant-increase-in-revenue-driven-by-the-acquisition-of-a-new-land-parcel">ARKBUILDER — H1 2026 Results: ARKBUILDER&#39;s H1 2026 results show a significant increase in revenue, driven by the acquisition of a new land parcel.</a></h2><p class="text-sm text-[#8899aa] leading-relaxed mb-6 line-clamp-3">
+
+
+
+
+
+INVESTNAIRA RESEARCH NOTE
+
+
+ARKBUILDER — H1 2026
+
+
+ARKBUILDER&#39;s H1 2026 results show a significant increase in revenue, driven by the acquisition of a new land parcel.
+
+
+HOLD
+
+
+25 February 2026 · AI-assisted draft — verify all figures
+
+
+
+
+
+
+Revenue Growth
++50% YoY
+
+
+Profit Growth
+None
+
+
+Rating</p><div class="mt-auto pt-5 border-t border-[#0f4034] flex items-center justify-between"><div class="text-xs text-[#8899aa] uppercase tracking-wider">2 Jun 2026</div><div class="flex items-center gap-3"><span class="text-[10px] text-[#8899aa] font-bold uppercase tracking-widest border border-[#0f4034] px-2 py-0.5 rounded">Premium</span><a href="/research/arkbuilder-h1-2026-results-arkbuilders-h1-2026-results-show-a-significant-increase-in-revenue-driven-by-the-acquisition-of-a-new-land-parcel" class="text-[#f59e0b] text-sm font-semibold hover:underline">
+Read &rarr;
+</a></div></div></article> </div> </section> <!-- FAQ --> <section class="py-16 border-b border-[#0f4034]"> <h2 class="text-3xl font-['Playfair_Display',serif] font-bold text-white mb-10">Questions, answered</h2> <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-5xl"> <div> <h3 class="text-white font-bold mb-2">What is TREASURE?</h3> <p class="text-sm text-[#8899aa] leading-relaxed">TREASURE is a professional market intelligence terminal for Nigerian markets: live NGX equities, FGN bonds and T-bills, FX, macro data, scored news, a factor screener and AI decision support — built entirely on official and exchange sources.</p> </div><div> <h3 class="text-white font-bold mb-2">Is TREASURE a Bloomberg alternative for Nigeria?</h3> <p class="text-sm text-[#8899aa] leading-relaxed">For Nigerian coverage, yes — it is built to answer the same questions a Bloomberg or Refinitiv terminal answers (valuation vs peers, real yields, breaking market news, audited fundamentals) at a fraction of the cost, with deeper Nigeria-specific data such as parallel-market FX and NGX filings.</p> </div><div> <h3 class="text-white font-bold mb-2">Where does the data come from?</h3> <p class="text-sm text-[#8899aa] leading-relaxed">Official sources only: the Nigerian Exchange (NGX) daily official lists and filings, the Central Bank of Nigeria, the Debt Management Office, the National Bureau of Statistics, and audited company financial statements. A number that cannot be sourced is shown blank — never estimated.</p> </div><div> <h3 class="text-white font-bold mb-2">What are Decision Dossiers?</h3> <p class="text-sm text-[#8899aa] leading-relaxed">One auditable answer per security or asset class: six pillars — Valuation, Quality, Momentum, Income, News and vs-Risk-Free — each scored only from real sourced numbers with the evidence printed under every score, plus what the riskless alternative currently pays.</p> </div><div> <h3 class="text-white font-bold mb-2">Can I get alerts on Telegram?</h3> <p class="text-sm text-[#8899aa] leading-relaxed">Yes. Breaking market-moving news with direction tags, a morning brief, midday and close market pulses, on-demand decision dossiers, plain-English questions to the AI analyst, and a personal radar that watches the names you actually hold.</p> </div><div> <h3 class="text-white font-bold mb-2">Who is TREASURE for?</h3> <p class="text-sm text-[#8899aa] leading-relaxed">Global investors and funds allocating to Nigeria and frontier Africa, local asset managers and analysts, the Nigerian diaspora managing money home, and serious retail investors who want institutional-grade data instead of rumours.</p> </div> </div> </section> <!-- Final CTA --> <section class="py-20 text-center"> <h2 class="text-4xl font-['Playfair_Display',serif] font-bold text-white mb-4">
+Stop guessing. Start <span class="text-[#f59e0b] italic">deciding</span>.
+</h2> <p class="text-[#8899aa] mb-8 max-w-lg mx-auto">
+Join the gated beta and put institutional-grade Nigerian market intelligence on your screen today.
+</p> <div class="flex gap-4 justify-center"> <a href="/terminal" class="bg-[#f59e0b] hover:bg-[#d97706] text-[#001a14] font-bold px-7 py-3.5 rounded text-sm transition-colors">
+Launch the Terminal
+</a> <a href="/subscribe" class="border border-[#0f4034] hover:bg-[#0f4034] text-white font-bold px-7 py-3.5 rounded text-sm transition-colors">
+Request Access
+</a> </div> </section> </div>  </main> <footer class="w-full border-t border-[#0f4034] mt-24 py-16 px-6 lg:px-16"> <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12"> <div class="md:col-span-2"> <h3 class="text-white font-['Playfair_Display',serif] font-bold text-2xl mb-4">
+Invest<span class="text-[#f59e0b] italic">Naira</span> </h3> <p class="text-[#8899aa] leading-relaxed max-w-sm">
+TREASURE — the market intelligence terminal for Africa's largest economy.
+            Live NGX data, audited fundamentals, sovereign yields and AI-grade decision
+            support, built on official sources only.
+</p> </div> <div> <h4 class="text-[#e2e8f0] font-bold mb-4 uppercase tracking-widest text-xs">Product</h4> <ul class="space-y-2.5 text-sm text-[#8899aa]"> <li><a href="/terminal" class="hover:text-white transition-colors">TREASURE Terminal</a></li> <li><a href="/archive" class="hover:text-white transition-colors">Research Library</a></li> <li><a href="/macro" class="hover:text-white transition-colors">Macroeconomics</a></li> <li><a href="/sectors" class="hover:text-white transition-colors">Sector Monitor</a></li> <li><a href="https://t.me/InvestNairaAlert" rel="noopener" class="hover:text-white transition-colors">Telegram Signals</a></li> </ul> </div> <div> <h4 class="text-[#e2e8f0] font-bold mb-4 uppercase tracking-widest text-xs">Access</h4> <ul class="space-y-2.5 text-sm text-[#8899aa]"> <li><a href="/subscribe" class="hover:text-white transition-colors">Subscribe</a></li> <li><a href="/gate" class="hover:text-white transition-colors">Beta Sign In</a></li> </ul> </div> </div> <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-[#0f4034] flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#8899aa]"> <p>&copy; 2026 InvestNaira Research. All rights reserved.</p> <p class="text-center">Research signal from official and exchange data — not investment advice.</p> </div> </footer> <div id="betaFeedbackContainer" class="fixed bottom-6 right-6 z-50"> <!-- The floating trigger button --> <button id="feedbackTriggerBtn" class="bg-[#0f4034] hover:bg-[#00d4aa] text-[#00d4aa] hover:text-[#001a14] shadow-lg border border-[#00d4aa]/30 hover:border-transparent rounded-full w-12 h-12 flex items-center justify-center transition-all duration-300" aria-label="Submit Beta Feedback"> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path> </svg> </button> <!-- The popover form --> <div id="feedbackFormPopup" class="hidden absolute bottom-16 right-0 w-80 bg-[#001a14] border border-[#0f4034] rounded-lg shadow-2xl overflow-hidden flex-col"> <div class="bg-[#032e25] px-4 py-3 border-b border-[#0f4034] flex justify-between items-center"> <h3 class="text-white font-bold text-sm">Beta Feedback</h3> <button id="closeFeedbackBtn" class="text-[#8899aa] hover:text-white">&times;</button> </div> <div class="p-4"> <div id="feedbackSuccess" class="hidden text-center py-4"> <div class="text-[#00d4aa] text-3xl mb-2">✓</div> <p class="text-white text-sm font-semibold">Thank you for your feedback!</p> </div> <form id="betaFeedbackForm" class="space-y-3"> <div> <label class="block text-xs font-semibold text-[#8899aa] mb-1">Message <span class="text-red-500">*</span></label> <textarea id="feedbackMessage" required rows="3" class="w-full bg-[#032e25] border border-[#0f4034] rounded px-3 py-2 text-sm text-white placeholder-[#4a6080] focus:outline-none focus:border-[#f59e0b] resize-none" placeholder="Report a bug or suggest an improvement..."></textarea> </div> <div> <label class="block text-xs font-semibold text-[#8899aa] mb-1">Email (Optional)</label> <input type="email" id="feedbackEmail" class="w-full bg-[#032e25] border border-[#0f4034] rounded px-3 py-2 text-sm text-white placeholder-[#4a6080] focus:outline-none focus:border-[#f59e0b]" placeholder="For follow-ups"> </div> <div id="feedbackError" class="hidden text-xs text-red-500"></div> <button type="submit" id="submitFeedbackBtn" class="w-full bg-[#f59e0b] hover:bg-[#d97706] text-[#001a14] font-bold py-2 rounded text-sm transition-colors">
+Submit Feedback
+</button> </form> </div> </div> </div> <script type="module">const r=document.getElementById("feedbackTriggerBtn"),u=document.getElementById("closeFeedbackBtn"),t=document.getElementById("feedbackFormPopup"),i=document.getElementById("betaFeedbackForm"),a=document.getElementById("feedbackSuccess"),e=document.getElementById("feedbackError"),n=document.getElementById("submitFeedbackBtn");if(!document.cookie.includes("beta_session=")){const s=document.getElementById("betaFeedbackContainer");s&&(s.style.display="none")}function c(){if(!t)return;t.classList.contains("hidden")?(t.classList.remove("hidden"),t.classList.add("flex"),i&&i.classList.remove("hidden"),a&&a.classList.add("hidden"),e&&e.classList.add("hidden"),document.getElementById("feedbackMessage").value=""):(t.classList.add("hidden"),t.classList.remove("flex"))}r?.addEventListener("click",c);u?.addEventListener("click",c);i?.addEventListener("submit",async s=>{s.preventDefault();const l=document.getElementById("feedbackMessage").value,m=document.getElementById("feedbackEmail").value;n&&(n.textContent="Submitting...",n.setAttribute("disabled","true")),e&&e.classList.add("hidden");try{const d=await fetch("/api/beta/feedback",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:l,email:m,page:window.location.pathname+window.location.search})}),o=await d.json();if(d.ok&&o.ok)i.classList.add("hidden"),a&&a.classList.remove("hidden"),setTimeout(()=>{c()},3e3);else throw new Error(o.error||"Failed to submit feedback")}catch(d){e&&(e.textContent=d.message,e.classList.remove("hidden"))}finally{n&&(n.textContent="Submit Feedback",n.removeAttribute("disabled"))}});</script> </body></html>
